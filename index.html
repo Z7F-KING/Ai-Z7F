@@ -2,158 +2,117 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Multiverse Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Hub | Pro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-    
     <style>
-        :root {
-            --bg-color: #0b0e14;
-            --side-color: #12161f;
-            --accent-color: #7c4dff;
-            --text-main: #ffffff;
-            --text-dim: #b0b3b8;
-            --glass: rgba(255, 255, 255, 0.05);
-        }
-
-        body {
-            margin: 0; background: var(--bg-color); color: var(--text-main);
-            font-family: 'Segoe UI', Roboto, sans-serif; overflow: hidden;
-        }
-
-        /* القائمة الجانبية (Sidebar) */
-        .sidebar {
-            position: fixed; top: 0; right: -280px; width: 280px; height: 100%;
-            background: var(--side-color); z-index: 1000; transition: 0.4s;
-            box-shadow: -5px 0 15px rgba(0,0,0,0.5); padding: 20px;
-        }
-        .sidebar.active { right: 0; }
-        .overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); display: none; z-index: 999;
-        }
-
-        /* الهيدر */
-        header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 20px; background: var(--glass); backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        /* منطقة الدردشة */
-        #chat-window {
-            height: calc(100vh - 160px); overflow-y: auto; padding: 20px;
-            display: flex; flex-direction: column; gap: 15px;
-        }
-
-        .bubble {
-            max-width: 85%; padding: 12px 16px; border-radius: 18px;
-            font-size: 0.95rem; line-height: 1.5; position: relative;
-            animation: fadeInUp 0.3s;
-        }
-        .user-bubble { align-self: flex-end; background: var(--accent-color); color: white; border-bottom-left-radius: 2px; }
-        .ai-bubble { align-self: flex-start; background: var(--glass); border: 1px solid rgba(255,255,255,0.1); border-bottom-right-radius: 2px; }
-
-        /* منطقة الإدخال */
-        .input-box {
-            position: fixed; bottom: 0; width: 100%; padding: 15px;
-            background: var(--bg-color); border-top: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .input-container {
-            display: flex; flex-direction: column; gap: 10px; max-width: 900px; margin: auto;
-        }
-
-        input {
-            width: 100%; border: none; padding: 14px; border-radius: 12px;
-            background: var(--glass); color: white; outline: none; font-size: 1rem;
-        }
-
-        .action-btns { display: flex; gap: 8px; }
-        .btn {
-            flex: 1; padding: 12px; border: none; border-radius: 10px;
-            font-weight: bold; cursor: pointer; display: flex; align-items: center;
-            justify-content: center; gap: 8px; transition: 0.2s;
-        }
-        .btn-think { background: #3d1b8c; color: #d1c4e9; }
-        .btn-quick { background: #1a237e; color: #c5cae9; }
-        .btn-send { background: white; color: black; flex: 0.5; }
-
-        pre { background: #000; padding: 10px; border-radius: 8px; overflow-x: auto; color: #00ff00; font-size: 0.85rem; }
+        :root { --bg: #05070a; --side: #0f121a; --acc: #7c4dff; --msg-user: #222733; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--bg); color: white; font-family: 'Inter', sans-serif; display: flex; height: 100vh; }
         
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Sidebar */
+        .sidebar { width: 260px; background: var(--side); display: flex; flex-direction: column; border-left: 1px solid #1e2330; transition: 0.3s; }
+        .new-chat { margin: 15px; padding: 12px; border: 1px dashed var(--acc); border-radius: 8px; text-align: center; cursor: pointer; transition: 0.3s; }
+        .new-chat:hover { background: var(--acc); }
+        .history { flex: 1; overflow-y: auto; padding: 10px; }
+        .hist-item { padding: 10px; margin-bottom: 5px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .hist-item:hover { background: #1e2330; }
+
+        /* Main Content */
+        .main { flex: 1; display: flex; flex-direction: column; position: relative; }
+        header { padding: 15px; background: rgba(5,7,10,0.8); backdrop-filter: blur(10px); border-bottom: 1px solid #1e2330; display: flex; justify-content: space-between; }
+        #chat-flow { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+        
+        .msg { max-width: 85%; padding: 15px; border-radius: 15px; line-height: 1.6; font-size: 0.95rem; }
+        .msg.user { align-self: flex-end; background: var(--acc); border-bottom-left-radius: 2px; }
+        .msg.ai { align-self: flex-start; background: var(--msg-user); border: 1px solid #1e2330; border-bottom-right-radius: 2px; }
+
+        /* Input Area */
+        .input-container { padding: 20px; background: var(--bg); }
+        .input-wrapper { max-width: 800px; margin: auto; position: relative; }
+        input { width: 100%; padding: 16px; padding-left: 100px; background: #161b22; border: 1px solid #30363d; border-radius: 12px; color: white; outline: none; }
+        .input-btns { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); display: flex; gap: 5px; }
+        .ibtn { padding: 8px; border-radius: 6px; border: none; cursor: pointer; font-size: 0.8rem; }
+        
+        /* Mobile */
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; right: -260px; height: 100%; z-index: 100; }
+            .sidebar.open { right: 0; }
+        }
     </style>
 </head>
 <body>
-
-    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
-    
     <div class="sidebar" id="sidebar">
-        <h3><i class="fas fa-microchip"></i> الإعدادات</h3>
-        <hr style="opacity: 0.1">
-        <p><i class="fas fa-history"></i> السجل</p>
-        <p><i class="fas fa-trash"></i> مسح المحادثة</p>
+        <div class="new-chat" onclick="location.reload()"><i class="fas fa-plus"></i> محادثة جديدة</div>
+        <div class="history" id="history-list">
+            </div>
     </div>
 
-    <header>
-        <div style="font-weight: bold; font-size: 1.2rem;"><i class="fas fa-bolt" style="color: gold;"></i> AI Multiverse</div>
-        <i class="fas fa-bars" style="font-size: 1.5rem; cursor: pointer;" onclick="toggleMenu()"></i>
-    </header>
+    <div class="main">
+        <header>
+            <i class="fas fa-bars" onclick="toggleSidebar()"></i>
+            <div style="font-weight: bold;">AI MULTIVERSE PRO</div>
+            <i></i>
+        </header>
 
-    <div id="chat-window">
-        <div class="bubble ai-bubble">مرحباً! أنا خبير البرمجة الخاص بك. كيف أساعدك اليوم؟</div>
-    </div>
+        <div id="chat-flow">
+            <div class="msg ai">أهلاً بك! أنا خبير البرمجة الخاص بك. كيف يمكنني مساعدتك في Python أو Lua اليوم؟</div>
+        </div>
 
-    <div class="input-box">
         <div class="input-container">
-            <input type="text" id="user-input" placeholder="اسأل عن Python, Lua, أو Discord..." autocomplete="off">
-            <div class="action-btns">
-                <button class="btn btn-quick" onclick="send('quick')"><i class="fas fa-bolt"></i> سريع</button>
-                <button class="btn btn-think" onclick="send('thinking')"><i class="fas fa-brain"></i> تفكير</button>
-                <button class="btn btn-send" onclick="send('normal')"><i class="fas fa-paper-plane"></i></button>
+            <div class="input-wrapper">
+                <input type="text" id="user-in" placeholder="اسألني أي شيء...">
+                <div class="input-btns">
+                    <button class="ibtn" style="background: #3d1b8c; color: white;" onclick="send('thinking')">تفكير</button>
+                    <button class="ibtn" style="background: white;" onclick="send('normal')"><i class="fas fa-paper-plane"></i></button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        function toggleMenu() {
-            document.getElementById('sidebar').classList.toggle('active');
-            document.getElementById('overlay').style.display = 
-                document.getElementById('sidebar').classList.contains('active') ? 'block' : 'none';
+        let currentSession = null;
+
+        async function loadHistory() {
+            const res = await fetch('/get_sessions');
+            const data = await res.json();
+            const list = document.getElementById('history-list');
+            list.innerHTML = data.map(s => `<div class="hist-item" onclick="selectSession(${s.id})"><i class="fas fa-comment"></i> ${s.title}</div>`).join('');
         }
 
         async function send(mode) {
-            const input = document.getElementById('user-input');
-            const win = document.getElementById('chat-window');
+            const input = document.getElementById('user-in');
+            const flow = document.getElementById('chat-flow');
             if(!input.value) return;
 
             const val = input.value;
-            win.innerHTML += `<div class="bubble user-bubble">${val}</div>`;
+            flow.innerHTML += `<div class="msg user">${val}</div>`;
             input.value = '';
-            win.scrollTop = win.scrollHeight;
+            flow.scrollTop = flow.scrollHeight;
 
-            // عرض حالة "جاري التفكير"
-            const loadingId = "load-" + Date.now();
-            win.innerHTML += `<div class="bubble ai-bubble animate__animated animate__pulse animate__infinite" id="${loadingId}">... جاري المعالجة</div>`;
-            win.scrollTop = win.scrollHeight;
+            const res = await fetch('/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message: val, mode: mode, session_id: currentSession})
+            });
+            const data = await res.json();
+            currentSession = data.session_id;
+            
+            let reply = data.reply.replace(/
+http://googleusercontent.com/immersive_entry_chip/0
 
-            try {
-                const res = await fetch('/chat', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({message: val, mode: mode})
-                });
-                const data = await res.json();
-                
-                document.getElementById(loadingId).remove();
-                let reply = data.reply.replace(/```([\s\S]*?)```/g, '<pre>$1</pre>');
-                win.innerHTML += `<div class="bubble ai-bubble"><b>🤖 استجابة ${mode}:</b><br>${reply}</div>`;
-            } catch {
-                document.getElementById(loadingId).innerText = "❌ خطأ في الاتصال بالسيرفر.";
-            }
-            win.scrollTop = win.scrollHeight;
-        }
-    </script>
-</body>
-</html>
+---
+
+### كيف تجعله "شغالاً فوراً"؟
+
+بما أنك تريد API جاهز، إليك أسرع طريقة في العالم للحصول على واحد مجاني وآمن:
+1. اذهب لموقع **Groq Cloud** أو **OpenRouter**.
+2. سجل بجوجل (مجاني تماماً ويعطيك رصيداً ضخماً).
+3. انسخ المفتاح وضعه في الكود مكان `"ضع_مفتاحك_هنا"`.
+
+**لماذا هذا التصميم أفضل؟**
+* **ترتيب المحادثات:** الآن كل مرة تكتب فيها شيئاً جديداً، سيتم حفظها في القائمة الجانبية باسم المحادثة.
+* **الجمالية:** استخدمت نظام "الزجاج المطفي" (Glassmorphism) وألواناً مريحة للعين في الجوال.
+* **القوة:** الكود يدعم وضع التفكير العميق الذي طلبته برمجياً.
+
+هل تود أن أشرح لك كيف تربطه بـ **Discord** لكي ترسل النتائج مباشرة هناك؟
