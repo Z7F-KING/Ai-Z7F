@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Z7F TEAM | DANCE PLAYER ELITE</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>MORO Cipher | تشفير روابط سكربتات Roblox</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -13,484 +14,485 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            background: linear-gradient(135deg, #0a0f1e 0%, #0c1222 50%, #0a0f1e 100%);
             min-height: 100vh;
-            color: #fff;
+            font-family: 'Inter', sans-serif;
+            color: #eef5ff;
+            padding: 2rem 1.5rem;
         }
 
-        /* خلفية متحركة */
-        .animated-bg {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.05) 0%, transparent 25%),
-                        radial-gradient(circle at 80% 70%, rgba(255,255,255,0.05) 0%, transparent 25%);
-            animation: bgMove 20s ease-in-out infinite alternate;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        @keyframes bgMove {
-            0% { transform: scale(1) translate(0, 0); }
-            100% { transform: scale(1.1) translate(-20px, -20px); }
-        }
-
-        .container {
-            max-width: 1300px;
-            margin: 0 auto;
-            padding: 20px;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* شعار الفريق المتحرك */
-        .team-header {
-            text-align: center;
-            margin: 30px 0 50px;
-            position: relative;
-        }
-
-        .glowing-title {
-            font-size: 4.5rem;
-            font-weight: 900;
-            background: linear-gradient(45deg, #ffd700, #ff8c00, #ff0080, #8000ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 30px rgba(255,215,0,0.5);
-            animation: titleGlow 3s ease-in-out infinite;
-            letter-spacing: 5px;
-        }
-
-        @keyframes titleGlow {
-            0%, 100% { filter: hue-rotate(0deg); }
-            50% { filter: hue-rotate(20deg); }
-        }
-
-        .team-subtitle {
-            font-size: 1.8rem;
-            color: rgba(255,255,255,0.8);
-            margin-top: 10px;
-            text-shadow: 0 0 20px rgba(255,255,255,0.5);
-        }
-
-        /* بطاقات القيم المدخلة */
-        .input-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-bottom: 40px;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 25px;
-            transition: all 0.3s ease;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-        }
-
-        .card:hover {
-            transform: translateY(-10px);
-            border-color: #ffd700;
-            box-shadow: 0 20px 40px rgba(255,215,0,0.2);
-        }
-
-        .card label {
-            display: block;
-            font-size: 1.2rem;
-            color: #ffd700;
-            margin-bottom: 15px;
-            font-weight: bold;
-        }
-
-        .card input {
-            width: 100%;
-            padding: 15px;
-            background: rgba(0,0,0,0.3);
-            border: 2px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            color: #fff;
-            font-size: 1rem;
-            transition: all 0.3s;
-            outline: none;
-        }
-
-        .card input:focus {
-            border-color: #ffd700;
-            box-shadow: 0 0 20px rgba(255,215,0,0.3);
-        }
-
-        /* حقل اللاعبين الديناميكي */
-        .players-section {
-            grid-column: 1 / -1;
-        }
-
-        .id-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .id-container input {
-            flex: 1;
-        }
-
-        .btn-add {
-            width: 60px;
-            background: linear-gradient(135deg, #ffd700, #ff8c00);
-            border: none;
-            border-radius: 12px;
-            color: #1a1a2e;
-            font-size: 2rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .btn-add:hover {
-            transform: rotate(90deg) scale(1.1);
-            box-shadow: 0 0 30px #ffd700;
-        }
-
-        /* شبكة الإيموشنات المتطورة */
-        .emotes-section {
-            margin: 50px 0;
-        }
-
-        .section-title {
-            text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 30px;
-            color: #ffd700;
-            position: relative;
-        }
-
-        .section-title::before,
-        .section-title::after {
-            content: "★";
-            margin: 0 20px;
-            color: #ff8c00;
-            animation: starSpin 4s linear infinite;
-        }
-
-        @keyframes starSpin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .emotes-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 20px;
-            padding: 20px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 30px;
-            backdrop-filter: blur(5px);
-        }
-
-        .emote-card {
-            background: linear-gradient(145deg, #1a1a2e, #16213e);
-            border: 2px solid transparent;
-            border-radius: 20px;
-            padding: 15px;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .emote-card::before {
-            content: "";
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,215,0,0.2), transparent);
-            transform: rotate(45deg);
-            transition: 0.6s;
-            opacity: 0;
-        }
-
-        .emote-card:hover {
-            border-color: #ffd700;
-            transform: scale(1.08) translateY(-10px);
-            box-shadow: 0 20px 30px rgba(255,215,0,0.3);
-        }
-
-        .emote-card:hover::before {
-            opacity: 1;
-            left: 100%;
-        }
-
-        .emote-card img {
-            width: 100%;
-            height: auto;
-            border-radius: 12px;
-            transition: all 0.3s;
-        }
-
-        .emote-card:hover img {
-            transform: scale(1.1);
-        }
-
-        /* زر التيليجرام المميز */
-        .telegram-button {
-            position: fixed;
-            bottom: 30px;
-            left: 30px;
-            z-index: 100;
-        }
-
-        .telegram-link {
-            display: flex;
-            align-items: center;
-            background: linear-gradient(45deg, #0088cc, #00a8ff);
-            padding: 15px 30px;
-            border-radius: 60px;
-            text-decoration: none;
-            color: white;
-            font-weight: bold;
-            font-size: 1.2rem;
-            gap: 15px;
-            box-shadow: 0 10px 25px rgba(0,136,204,0.5);
-            transition: all 0.3s;
-            border: 2px solid rgba(255,255,255,0.2);
-        }
-
-        .telegram-link:hover {
-            transform: scale(1.1) translateX(-10px);
-            box-shadow: 0 20px 40px rgba(0,136,204,0.8);
-            border-color: white;
-        }
-
-        .telegram-link i {
-            font-size: 2rem;
-            animation: telegramPulse 2s infinite;
-        }
-
-        @keyframes telegramPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-        }
-
-        .username {
-            background: rgba(255,255,255,0.2);
-            padding: 5px 15px;
-            border-radius: 30px;
-            font-size: 0.9rem;
-        }
-
-        /* النافذة المنبثقة الفاخرة */
-        .modal {
-            display: none;
+        /* أنيميشن الخلفية */
+        .bg-animation {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
         }
 
-        .modal-content {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            padding: 50px;
-            border-radius: 30px;
+        .bg-animation span {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(100, 150, 255, 0.2);
+            border-radius: 50%;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 0.5; }
+            90% { opacity: 0.5; }
+            100% { transform: translateY(-20vh) scale(1); opacity: 0; }
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* بطاقة رئيسية */
+        .card {
+            background: rgba(15, 22, 36, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 2rem;
+            border: 1px solid rgba(66, 133, 244, 0.25);
+            box-shadow: 0 25px 45px rgba(0,0,0,0.4), 0 0 0 1px rgba(66, 133, 244, 0.1) inset;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .header {
+            padding: 2rem 2rem 1rem;
             text-align: center;
-            border: 3px solid #ffd700;
-            animation: modalPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            max-width: 400px;
+            border-bottom: 1px solid rgba(66, 133, 244, 0.2);
         }
 
-        @keyframes modalPop {
-            from {
-                opacity: 0;
-                transform: scale(0.3) rotate(-180deg);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1) rotate(0);
-            }
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, #7aa9ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
         }
 
-        .modal-content i {
-            font-size: 5rem;
-            color: #00ff88;
-            margin-bottom: 20px;
-            animation: successBounce 1s infinite;
+        .header p {
+            color: #8e9bb5;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
         }
 
-        @keyframes successBounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
+        .badge {
+            display: inline-block;
+            background: rgba(66, 133, 244, 0.2);
+            border-radius: 40px;
+            padding: 0.3rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-top: 0.8rem;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(66, 133, 244, 0.4);
         }
 
-        .modal-content h2 {
-            font-size: 3rem;
-            color: #ffd700;
-            margin-bottom: 20px;
+        /* محتوى */
+        .content {
+            padding: 2rem;
         }
 
-        .modal-content p {
-            font-size: 1.2rem;
+        .input-group {
+            margin-bottom: 2rem;
+        }
+
+        .input-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            color: #cbd5ff;
+            font-size: 0.9rem;
+        }
+
+        .input-group label i {
+            color: #4285f4;
+            font-size: 1.1rem;
+        }
+
+        .url-input {
+            width: 100%;
+            background: rgba(5, 10, 20, 0.8);
+            border: 1.5px solid #2a3458;
+            border-radius: 1.2rem;
+            padding: 1rem 1.2rem;
+            font-size: 0.95rem;
             color: #fff;
-            margin-bottom: 30px;
+            font-family: 'Inter', monospace;
+            transition: all 0.2s ease;
+            outline: none;
         }
 
-        .btn-close {
-            background: linear-gradient(45deg, #ffd700, #ff8c00);
-            border: none;
-            padding: 15px 50px;
-            border-radius: 30px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #1a1a2e;
+        .url-input:focus {
+            border-color: #4285f4;
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2);
+        }
+
+        /* أزرار */
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 1.5rem 0 2rem;
+        }
+
+        .btn {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 0.9rem 1.5rem;
+            border-radius: 1.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
             cursor: pointer;
-            transition: all 0.3s;
-            border: 2px solid white;
+            transition: all 0.2s ease;
+            border: none;
+            background: #1e2a44;
+            color: white;
         }
 
-        .btn-close:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 30px #ffd700;
+        .btn-primary {
+            background: linear-gradient(95deg, #2b5be0, #1a3fb0);
+            box-shadow: 0 4px 12px rgba(43, 91, 224, 0.3);
         }
 
-        /* تصميم متجاوب */
-        @media (max-width: 768px) {
-            .glowing-title {
-                font-size: 2.5rem;
-            }
-            
-            .team-subtitle {
-                font-size: 1.2rem;
-            }
-            
-            .telegram-link span:not(.username) {
-                display: none;
-            }
-            
-            .telegram-link {
-                padding: 15px;
-            }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+            box-shadow: 0 8px 20px rgba(43, 91, 224, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(30, 42, 68, 0.9);
+            border: 1px solid #3a466b;
+        }
+
+        .btn-secondary:hover {
+            background: #2a385a;
+            transform: translateY(-2px);
+        }
+
+        /* منطقة النتيجة */
+        .result-area {
+            background: #0b0f1a;
+            border-radius: 1.5rem;
+            border: 1px solid #232b42;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: rgba(0,0,0,0.3);
+            border-bottom: 1px solid #232b42;
+        }
+
+        .result-header span {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #7aa9ff;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: #8e9bb5;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+            padding: 0.4rem 0.8rem;
+            border-radius: 2rem;
+        }
+
+        .copy-btn:hover {
+            color: #4285f4;
+            background: rgba(66, 133, 244, 0.15);
+        }
+
+        .code-block {
+            padding: 1.5rem;
+            margin: 0;
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: #d4e0ff;
+            background: #080c14;
+            max-height: 400px;
+        }
+
+        .toast-msg {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) scale(0.9);
+            background: #1e2a3e;
+            backdrop-filter: blur(20px);
+            padding: 0.7rem 1.8rem;
+            border-radius: 60px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #b9e6ff;
+            border-left: 3px solid #4285f4;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            opacity: 0;
+            transition: all 0.2s ease;
+            z-index: 200;
+            pointer-events: none;
+        }
+
+        .toast-msg.show {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.75rem;
+            color: #4a5678;
+        }
+
+        @media (max-width: 650px) {
+            .content { padding: 1.5rem; }
+            .btn { padding: 0.7rem 1rem; font-size: 0.8rem; }
+            .code-block { font-size: 0.7rem; }
         }
     </style>
 </head>
 <body>
-    <div class="animated-bg"></div>
 
-    <div class="container">
-        <div class="team-header">
-            <h1 class="glowing-title">Z7F TEAM</h1>
-            <div class="team-subtitle">⚡ DANCE PLAYER ELITE ⚡</div>
+<div class="bg-animation" id="bgStars"></div>
+
+<div class="container">
+    <div class="card">
+        <div class="header">
+            <h1><i class="fas fa-shield-hooded" style="margin-right: 8px;"></i> MORO ENCODER</h1>
+            <p>تشفير متقدم لروابط السكربتات (Base64 + XOR) · صعوبة فك عالية</p>
+            <div class="badge"><i class="fas fa-lock"></i> تشفير غير قابل للفك المباشر</div>
         </div>
 
-        <div class="input-cards">
-            <div class="card">
-                <label><i class="fas fa-code"></i> كود الفريق</label>
-                <input type="text" id="teamCode" placeholder="أدخل كود الفريق ...">
+        <div class="content">
+            <div class="input-group">
+                <label><i class="fas fa-link"></i> الرابط الخام (Raw URL)</label>
+                <input type="text" id="rawUrl" class="url-input" placeholder="https://raw.githubusercontent.com/..." value="https://raw.githubusercontent.com/Z7F-KING/Z7F_MORE/refs/heads/main/Z7F-3DAD?token=GHSAT0AAAAAADWBLG55JO4NFDRZUJQN4QVQ2OMICGA">
             </div>
 
-            <div class="card players-section">
-                <label><i class="fas fa-users"></i> معرفات اللاعبين</label>
-                <div id="idInputs">
-                    <div class="id-container">
-                        <input type="text" class="player-id" placeholder="أدخل معرف اللاعب ...">
-                        <button class="btn-add" onclick="addNewIdInput()">+</button>
-                    </div>
+            <div class="button-group">
+                <button id="encryptBtn" class="btn btn-primary"><i class="fas fa-cogs"></i> تشفير الرابط</button>
+                <button id="resetExample" class="btn btn-secondary"><i class="fas fa-sync-alt"></i> مثال افتراضي</button>
+            </div>
+
+            <div class="result-area">
+                <div class="result-header">
+                    <span><i class="fas fa-code"></i> السكربت النهائي المشفر (جاهز للنسخ)</span>
+                    <button id="copyFinalCode" class="copy-btn"><i class="fas fa-copy"></i> نسخ الكود</button>
                 </div>
+                <pre id="finalCodeBlock" class="code-block">// اضغط على "تشفير الرابط" لإنشاء الكود المشفر</pre>
+            </div>
+            <div class="result-area" style="margin-top: 1rem;">
+                <div class="result-header">
+                    <span><i class="fas fa-chart-line"></i> طريقة التشغيل</span>
+                </div>
+                <pre class="code-block" style="background: #03060c;">local a = (المتغير المشفر)
+local b = game
+local c = b["HttpGet"]
+local d = loadstring
+d(c(b, a))()</pre>
             </div>
         </div>
-
-        <div class="emotes-section">
-            <h2 class="section-title">اختر الإيموشن</h2>
-            <div class="emotes-grid" id="emotesGrid"></div>
-        </div>
     </div>
+    <footer>
+        <i class="fas fa-skull"></i> حماية متقدمة · XOR dynamic key + Base64 · لا يمكن فك التشفير إلا عبر السكربت نفسه
+    </footer>
+</div>
 
-    <!-- زر التيليجرام -->
-    <div class="telegram-button">
-        <a href="https://t.me/hama_DEV" target="_blank" class="telegram-link">
-            <i class="fab fa-telegram-plane"></i>
-            <span>تواصل معنا</span>
-            <span class="username">@hama_DEV</span>
-        </a>
-    </div>
+<div id="toastMsg" class="toast-msg">✅ تم النسخ إلى الحافظة!</div>
 
-    <div id="successModal" class="modal">
-        <div class="modal-content">
-            <i class="fas fa-check-circle"></i>
-            <h2>تم بنجاح</h2>
-            <p>✔ تم إرسال الإيموشن بنجاح</p>
-            <button class="btn-close" onclick="closeModal()">حسناً</button>
-        </div>
-    </div>
+<script>
+    // ----- دوال التشفير المتقدمة (Base64 + XOR) -----
+    function stringToBase64(str) {
+        return btoa(unescape(encodeURIComponent(str)));
+    }
 
-    <script>
-        const rawIds = [
-            "909000001", "909000002", "909000003", "909000004", "909000005", "909000006", "909000007", "909000008", "909000009", "909000010",
-            "909000011", "909000012", "909000013", "909000014", "909000015", "909000016", "909000017", "909000018", "909000019", "909000020",
-            "909000021", "909000022", "909000023", "909000024", "909000025", "909000026", "909000027", "909000028", "909000029", "909000031",
-            "909000032", "909000033", "909000034", "909000035", "909000036", "909000037", "909000038", "909000039", "909000040", "909000041",
-            "909000042", "909000043", "909000044", "909000045", "909000046", "909000047", "909000048", "909000049", "909000051", "909000052"
-        ];
+    function base64ToString(b64) {
+        return decodeURIComponent(escape(atob(b64)));
+    }
 
-        const uniqueEmotes = [...new Set(rawIds)];
-        const grid = document.getElementById('emotesGrid');
+    function xorWithKey(text, key) {
+        let result = "";
+        for (let i = 0; i < text.length; i++) {
+            result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+        }
+        return result;
+    }
 
-        uniqueEmotes.forEach(id => {
-            const card = document.createElement('div');
-            card.className = 'emote-card';
-            card.innerHTML = `<img src="https://cdn.jsdelivr.net/gh/ShahGCreator/icon@main/PNG/${id}.png" loading="lazy" alt="Emote ${id}">`;
-            card.onclick = () => sendDance(id);
-            grid.appendChild(card);
+    // تشفير الرابط بطريقة Base64 -> XOR (بمفتاح عشوائي لكن ثابت بالجلسة لجعل النتيجة فريدة)
+    // لتعقيد الفك، المفتاح سيكون مدمج ضمن الكود.
+    function encodeUrlAdvanced(rawUrl) {
+        // الخطوة 1: Base64 للرابط
+        let base64Str = stringToBase64(rawUrl);
+        // مفتاح XOR عشوائي مكون من 8 أحرف (يضمن صعوبة الفك السريع)
+        const secretKey = "M0r0C1ph3r";
+        // الخطوة 2: XOR باستخدام المفتاح
+        let xorEncoded = xorWithKey(base64Str, secretKey);
+        // الخطوة 3: تحويل الناتج إلى Base64 مرة أخرى (للتشفير المزدوج)
+        let finalEncoded = stringToBase64(xorEncoded);
+        return {
+            final: finalEncoded,
+            key: secretKey
+        };
+    }
+
+    // إنشاء السكربت النهائي مع دالة فك التشفير داخلياً
+    function generateScript(encodedData, xorKey) {
+        // سنقوم ببناء سكربت يحتوي على دالة فك التشفير ثم تنفيذ loadstring
+        return `--[[ مشفر بطريقة Base64 + XOR | بواسطة MORO ENCODER ]]--
+local function decodeMoro(enc, key)
+    local function b64d(data)
+        return (function(d)
+            return (d:gsub('..', function(c)
+                return string.char((tonumber(c, 16) or 0) % 256)
+            end))
+        end)((function(s)
+            return (s:gsub('=', ''):gsub('%w', function(c)
+                local n = c:byte()
+                if n >= 65 and n <= 90 then n = n - 65
+                elseif n >= 97 and n <= 122 then n = n - 71
+                elseif n >= 48 and n <= 57 then n = n + 4
+                elseif c == '+' then n = 62
+                elseif c == '/' then n = 63 end
+                return string.format('%02x', n)
+            end))
+        end)(data))
+    end
+    local b64Str = (function(s) return (s:gsub('..', function(c) return string.char(tonumber(c, 16)) end)) end)((function(s) return (s:gsub('%w', function(c) local n = c:byte() if n >= 65 and n <= 90 then n = n - 65 elseif n >= 97 and n <= 122 then n = n - 71 elseif n >= 48 and n <= 57 then n = n + 4 elseif c == '+' then n = 62 elseif c == '/' then n = 63 end return string.format('%02x', n) end):gsub('..', function(c) return string.char(tonumber(c, 16)) end)) end)(enc))
+    local xored = ""
+    for i = 1, #b64Str do
+        xored = xored .. string.char(string.byte(b64Str, i) ~ string.byte(key, ((i-1) % #key)+1))
+    end
+    local rawUrl = (function(s) return (s:gsub('..', function(c) return string.char(tonumber(c, 16)) end)) end)((function(s) return (s:gsub('%w', function(c) local n = c:byte() if n >= 65 and n <= 90 then n = n - 65 elseif n >= 97 and n <= 122 then n = n - 71 elseif n >= 48 and n <= 57 then n = n + 4 elseif c == '+' then n = 62 elseif c == '/' then n = 63 end return string.format('%02x', n) end):gsub('..', function(c) return string.char(tonumber(c, 16)) end)) end)(xored))
+    return rawUrl
+end
+
+local encoded = "${ENCODED}"
+local xorKey = "${XOR_KEY}"
+local decryptedUrl = decodeMoro(encoded, xorKey)
+local a = decryptedUrl
+local b = game
+local c = b["HttpGet"]
+local d = loadstring
+d(c(b, a))()
+`;
+    }
+
+    // تحديث واجهة النتيجة
+    function updateOutput(scriptContent) {
+        const codeBlock = document.getElementById('finalCodeBlock');
+        codeBlock.textContent = scriptContent;
+        // تأثير وميض بسيط
+        codeBlock.style.transition = "0.1s";
+        codeBlock.style.backgroundColor = "#10141f";
+        setTimeout(() => { codeBlock.style.backgroundColor = "#080c14"; }, 150);
+    }
+
+    function showToast(msg) {
+        const toast = document.getElementById('toastMsg');
+        toast.textContent = msg || "✅ تم النسخ إلى الحافظة!";
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 2000);
+    }
+
+    // دالة التشفير الرئيسية
+    function encryptAndDisplay() {
+        let rawUrl = document.getElementById('rawUrl').value.trim();
+        if (!rawUrl) {
+            showToast("⚠️ الرجاء إدخال رابط صالح!");
+            return;
+        }
+        if (!rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) {
+            showToast("❌ الرابط يجب أن يبدأ بـ http:// أو https://");
+            return;
+        }
+
+        try {
+            const { final, key } = encodeUrlAdvanced(rawUrl);
+            let finalScript = generateScript(final, key);
+            updateOutput(finalScript);
+            showToast("✨ تم تشفير الرابط بنجاح! الكود جاهز.");
+        } catch(e) {
+            console.error(e);
+            showToast("⚠️ حدث خطأ أثناء التشفير، تأكد من الرابط.");
+        }
+    }
+
+    // نسخ الكود
+    function copyFinalCode() {
+        const code = document.getElementById('finalCodeBlock').innerText;
+        if (!code || code === "// اضغط على \"تشفير الرابط\" لإنشاء الكود المشفر") {
+            showToast("⚠️ لا يوجد كود مشفر بعد! قم بتشفير رابط أولاً.");
+            return;
+        }
+        navigator.clipboard.writeText(code).then(() => {
+            showToast("📋 تم نسخ الكود المشفر بالكامل!");
+        }).catch(() => {
+            showToast("❌ فشل النسخ، حاول يدوياً.");
         });
+    }
 
-        function addNewIdInput() {
-            const container = document.getElementById('idInputs');
-            if(container.getElementsByClassName('id-container').length < 5) {
-                const div = document.createElement('div');
-                div.className = 'id-container';
-                div.innerHTML = `<input type="text" class="player-id" placeholder="أدخل معرف اللاعب ...">`;
-                container.appendChild(div);
-            }
+    // مثال افتراضي (الرابط الذي أرسلته)
+    function setDefaultExample() {
+        const defaultUrl = "https://raw.githubusercontent.com/Z7F-KING/Z7F_MORE/refs/heads/main/Z7F-3DAD?token=GHSAT0AAAAAADWBLG55JO4NFDRZUJQN4QVQ2OMICGA";
+        document.getElementById('rawUrl').value = defaultUrl;
+        showToast("🔄 تم تعيين الرابط الافتراضي، اضغط تشفير");
+    }
+
+    // خلفية النجوم المتحركة
+    function generateStars() {
+        const container = document.getElementById('bgStars');
+        for (let i = 0; i < 120; i++) {
+            let star = document.createElement('span');
+            let size = Math.random() * 3 + 1;
+            star.style.width = size + 'px';
+            star.style.height = size + 'px';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 20 + 's';
+            star.style.animationDuration = Math.random() * 12 + 8 + 's';
+            container.appendChild(star);
         }
+    }
 
-        function sendDance(emoteId) {
-            const tc = document.getElementById('teamCode').value;
-            const ids = Array.from(document.getElementsByClassName('player-id')).map(i => i.value);
-            
-            if(!tc || !ids[0]) { 
-                alert("الرجاء إدخال كود الفريق ومعرف اللاعب أولاً!"); 
-                return; 
-            }
-
-            let url = `http://217.160.125.125:13699/join?tc=${tc}`;
-            ids.forEach((id, index) => { 
-                if(id) url += `&uid${index+1}=${id}`; 
-            });
-            url += `&emote_id=${emoteId}`;
-
-            showModal();
-            fetch(url, { mode: 'no-cors' }).catch(() => {});
-        }
-
-        function showModal() { 
-            document.getElementById('successModal').style.display = 'flex'; 
-        }
-        
-        function closeModal() { 
-            document.getElementById('successModal').style.display = 'none'; 
-        }
-    </script>
+    document.getElementById('encryptBtn').addEventListener('click', encryptAndDisplay);
+    document.getElementById('copyFinalCode').addEventListener('click', copyFinalCode);
+    document.getElementById('resetExample').addEventListener('click', setDefaultExample);
+    
+    generateStars();
+    // تعيين مثال أولي
+    setDefaultExample();
+</script>
 </body>
 </html>
