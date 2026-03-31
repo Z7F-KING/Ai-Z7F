@@ -1,475 +1,72 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Z7F OBF | تشفير روابط سكربتات Roblox</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Multiverse | Pro Edition</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: linear-gradient(135deg, #0a0f1e 0%, #0c1222 50%, #0a0f1e 100%);
-            min-height: 100vh;
-            font-family: 'Inter', sans-serif;
-            color: #eef5ff;
-            padding: 2rem 1.5rem;
-        }
-
-        .bg-animation {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            overflow: hidden;
-            pointer-events: none;
-        }
-
-        .bg-animation span {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: rgba(100, 150, 255, 0.2);
-            border-radius: 50%;
-            animation: float 20s infinite linear;
-        }
-
-        @keyframes float {
-            0% { transform: translateY(100vh) scale(0); opacity: 0; }
-            10% { opacity: 0.5; }
-            90% { opacity: 0.5; }
-            100% { transform: translateY(-20vh) scale(1); opacity: 0; }
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 10;
-        }
-
-        .card {
-            background: rgba(15, 22, 36, 0.7);
-            backdrop-filter: blur(12px);
-            border-radius: 2rem;
-            border: 1px solid rgba(66, 133, 244, 0.25);
-            box-shadow: 0 25px 45px rgba(0,0,0,0.4), 0 0 0 1px rgba(66, 133, 244, 0.1) inset;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .header {
-            padding: 2rem 2rem 1rem;
-            text-align: center;
-            border-bottom: 1px solid rgba(66, 133, 244, 0.2);
-        }
-
-        .header h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #fff, #7aa9ff);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            letter-spacing: -0.5px;
-        }
-
-        .header p {
-            color: #8e9bb5;
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .badge {
-            display: inline-block;
-            background: rgba(66, 133, 244, 0.2);
-            border-radius: 40px;
-            padding: 0.3rem 1rem;
-            font-size: 0.75rem;
-            font-weight: 500;
-            margin-top: 0.8rem;
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(66, 133, 244, 0.4);
-        }
-
-        .content {
-            padding: 2rem;
-        }
-
-        .input-group {
-            margin-bottom: 2rem;
-        }
-
-        .input-group label {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            font-weight: 600;
-            margin-bottom: 0.8rem;
-            color: #cbd5ff;
-            font-size: 0.9rem;
-        }
-
-        .input-group label i {
-            color: #4285f4;
-            font-size: 1.1rem;
-        }
-
-        .url-input {
-            width: 100%;
-            background: rgba(5, 10, 20, 0.8);
-            border: 1.5px solid #2a3458;
-            border-radius: 1.2rem;
-            padding: 1rem 1.2rem;
-            font-size: 0.95rem;
-            color: #fff;
-            font-family: 'Inter', monospace;
-            transition: all 0.2s ease;
-            outline: none;
-        }
-
-        .url-input:focus {
-            border-color: #4285f4;
-            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2);
-        }
-
-        .button-group {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            margin: 1.5rem 0 2rem;
-        }
-
-        .btn {
-            flex: 1;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 0.9rem 1.5rem;
-            border-radius: 1.5rem;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: none;
-            background: #1e2a44;
-            color: white;
-        }
-
-        .btn-primary {
-            background: linear-gradient(95deg, #2b5be0, #1a3fb0);
-            box-shadow: 0 4px 12px rgba(43, 91, 224, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            filter: brightness(1.05);
-            box-shadow: 0 8px 20px rgba(43, 91, 224, 0.4);
-        }
-
-        .btn-secondary {
-            background: rgba(30, 42, 68, 0.9);
-            border: 1px solid #3a466b;
-        }
-
-        .btn-secondary:hover {
-            background: #2a385a;
-            transform: translateY(-2px);
-        }
-
-        .result-area {
-            background: #0b0f1a;
-            border-radius: 1.5rem;
-            border: 1px solid #232b42;
-            overflow: hidden;
-            margin-top: 1rem;
-        }
-
-        .result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 1.5rem;
-            background: rgba(0,0,0,0.3);
-            border-bottom: 1px solid #232b42;
-        }
-
-        .result-header span {
-            font-weight: 600;
-            font-size: 0.85rem;
-            color: #7aa9ff;
-        }
-
-        .copy-btn {
-            background: none;
-            border: none;
-            color: #8e9bb5;
-            cursor: pointer;
-            font-size: 1.2rem;
-            transition: all 0.2s;
-            padding: 0.4rem 0.8rem;
-            border-radius: 2rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .copy-btn:hover {
-            color: #4285f4;
-            background: rgba(66, 133, 244, 0.15);
-        }
-
-        .code-block {
-            padding: 1.5rem;
-            margin: 0;
-            overflow-x: auto;
-            font-family: 'Fira Code', 'Courier New', monospace;
-            font-size: 0.8rem;
-            line-height: 1.5;
-            white-space: pre-wrap;
-            word-break: break-all;
-            color: #d4e0ff;
-            background: #080c14;
-            max-height: 400px;
-        }
-
-        .toast-msg {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) scale(0.9);
-            background: #1e2a3e;
-            backdrop-filter: blur(20px);
-            padding: 0.7rem 1.8rem;
-            border-radius: 60px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: #b9e6ff;
-            border-left: 3px solid #4285f4;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            opacity: 0;
-            transition: all 0.2s ease;
-            z-index: 200;
-            pointer-events: none;
-        }
-
-        .toast-msg.show {
-            opacity: 1;
-            transform: translateX(-50%) scale(1);
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 2rem;
-            font-size: 0.75rem;
-            color: #4a5678;
-        }
-
-        @media (max-width: 650px) {
-            .content { padding: 1.5rem; }
-            .btn { padding: 0.7rem 1rem; font-size: 0.8rem; }
-            .code-block { font-size: 0.7rem; }
-        }
+        :root { --bg: #0d1117; --card: #161b22; --border: #30363d; --accent: #8957e5; }
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        header { padding: 15px 25px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        #chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .msg { padding: 12px 18px; border-radius: 12px; max-width: 85%; line-height: 1.6; }
+        .user { align-self: flex-end; background: #238636; }
+        .ai { align-self: flex-start; background: var(--card); border: 1px solid var(--border); }
+        pre { background: #000; padding: 10px; border-radius: 5px; overflow-x: auto; font-family: monospace; }
+        .input-area { padding: 20px; background: var(--card); border-top: 1px solid var(--border); }
+        .input-wrapper { display: flex; flex-direction: column; gap: 10px; }
+        input { width: 100%; padding: 14px; background: var(--bg); border: 1px solid var(--border); color: white; border-radius: 8px; box-sizing: border-box; }
+        .btns { display: flex; gap: 10px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-think { background: var(--accent); color: white; }
+        .btn-quick { background: #1f6feb; color: white; }
+        .btn-send { background: #ffffff; color: black; }
+        button:hover { opacity: 0.8; }
+        @media (max-width: 600px) { .btns { flex-wrap: wrap; } button { width: 48%; } .btn-send { width: 100%; } }
     </style>
 </head>
 <body>
+    <header>
+        <div style="font-size: 1.2rem; font-weight: bold;">AI Multiverse 🚀</div>
+        <div style="cursor: pointer; font-size: 1.5rem;">☰</div>
+    </header>
 
-<div class="bg-animation" id="bgStars"></div>
+    <div id="chat-container"></div>
 
-<div class="container">
-    <div class="card">
-        <div class="header">
-            <h1><i class="fas fa-skull" style="margin-right: 8px;"></i> Z7F OBF</h1>
-            <p>تشفير روابط السكربتات بحماية قوية</p>
-            <div class="badge"><i class="fas fa-lock"></i> تشفير قوي جداً (صنع من قِبل زحف)</div>
-        </div>
-
-        <div class="content">
-            <div class="input-group">
-                <label><i class="fas fa-link"></i> الرابط الخام (Raw URL)</label>
-                <input type="text" id="rawUrl" class="url-input" placeholder="https://raw.githubusercontent.com/... أو https://pastebin.com/raw/...">
-            </div>
-
-            <div class="button-group">
-                <button id="encryptBtn" class="btn btn-primary"><i class="fas fa-cogs"></i> تشفير الرابط</button>
-                <button id="resetExample" class="btn btn-secondary"><i class="fas fa-sync-alt"></i> مثال افتراضي</button>
-            </div>
-
-            <div class="result-area">
-                <div class="result-header">
-                    <span><i class="fas fa-code"></i> السكربت المشفر</span>
-                    <button id="copyFinalCode" class="copy-btn"><i class="fas fa-copy"></i> <span>نسخ الكود</span></button>
-                </div>
-                <pre id="finalCodeBlock" class="code-block">// اضغط على "تشفير الرابط" لإنشاء الكود المشفر</pre>
-            </div>
-            <div class="result-area" style="margin-top: 1rem;">
-                <div class="result-header">
-                    <span><i class="fas fa-chart-line"></i> طريقة التشغيل</span>
-                </div>
-                <pre class="code-block" style="background: #03060c;">loadstring(game:HttpGet(decryptedUrl))()</pre>
+    <div class="input-area">
+        <div class="input-wrapper">
+            <input type="text" id="user-input" placeholder="اطلب كود بايثون أو لوا...">
+            <div class="btns">
+                <button onclick="send('quick')" class="btn-quick">الرد السريع</button>
+                <button onclick="send('thinking')" class="btn-think">زر التفكير</button>
+                <button onclick="send('normal')" class="btn-send">إرسال</button>
             </div>
         </div>
     </div>
-    <footer>
-        <i class="fas fa-skull"></i> Z7F OBF · حماية متقدمة · Base64 + XOR
-    </footer>
-</div>
 
-<div id="toastMsg" class="toast-msg">✅ تم النسخ إلى الحافظة!</div>
+    <script>
+        async function send(mode) {
+            const input = document.getElementById('user-input');
+            const container = document.getElementById('chat-container');
+            if(!input.value) return;
 
-<script>
-    // تحويل النص إلى Base64 (يدعم جميع الأحرف)
-    function stringToBase64(str) {
-        return btoa(Array.from(new TextEncoder().encode(str)).map(byte => String.fromCharCode(byte)).join(''));
-    }
+            const text = input.value;
+            container.innerHTML += `<div class="msg user">${text}</div>`;
+            input.value = '';
+            container.scrollTop = container.scrollHeight;
 
-    function xorEncrypt(text, key) {
-        let result = "";
-        for (let i = 0; i < text.length; i++) {
-            result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+            const res = await fetch('/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message: text, mode: mode})
+            });
+            const data = await res.json();
+            
+            // تحويل الأكواد لشكل جميل
+            let formattedReply = data.reply.replace(/```([\s\S]*?)```/g, '<pre>$1</pre>');
+            container.innerHTML += `<div class="msg ai"><b>🤖 ${mode}:</b><br>${formattedReply}</div>`;
+            container.scrollTop = container.scrollHeight;
         }
-        return result;
-    }
-
-    // تشفير الرابط بالطريقة المطلوبة: Base64 -> XOR -> Base64
-    function encodeUrlAdvanced(rawUrl) {
-        // الخطوة 1: تحويل الرابط إلى Base64
-        let base64Str = stringToBase64(rawUrl);
-        // الخطوة 2: XOR باستخدام مفتاح ثابت (87)
-        let key = String.fromCharCode(87);
-        let xorEncoded = xorEncrypt(base64Str, key);
-        // الخطوة 3: تحويل الناتج إلى Base64
-        let finalEncoded = stringToBase64(xorEncoded);
-        return finalEncoded;
-    }
-
-    function generateScript(encodedData) {
-        return `-- الرابط مشفر بـ Base64 ثم XOR بمفتاح سري
-local key = 87  -- مفتاح XOR (يمكنك تغييره)
-local encoded = "${encodedData}"
-
--- دالة فك التشفير
-local function decodeUrl(enc, keyByte)
-    local function base64Decode(data)
-        local b64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-        data = string.gsub(data, '[^'..b64chars..'=]', '')
-        local result = {}
-        for i = 1, #data, 4 do
-            local a, b, c, d = string.byte(data, i), string.byte(data, i+1), string.byte(data, i+2), string.byte(data, i+3)
-            a = a and b64chars:find(string.char(a))-1 or 0
-            b = b and b64chars:find(string.char(b))-1 or 0
-            c = c and b64chars:find(string.char(c))-1 or 0
-            d = d and b64chars:find(string.char(d))-1 or 0
-            local n = a*262144 + b*4096 + c*64 + d
-            table.insert(result, string.char(bit32.extract(n, 16, 8)))
-            if c ~= 64 then table.insert(result, string.char(bit32.extract(n, 8, 8))) end
-            if d ~= 64 then table.insert(result, string.char(bit32.extract(n, 0, 8))) end
-        end
-        return table.concat(result)
-    end
-    
-    -- فك الطبقة الأولى (Base64)
-    local firstDecode = base64Decode(enc)
-    -- فك XOR
-    local xored = ""
-    for i = 1, #firstDecode do
-        xored = xored .. string.char(string.byte(firstDecode, i) ~ keyByte)
-    end
-    -- فك الطبقة الأخيرة (Base64)
-    local finalUrl = base64Decode(xored)
-    return finalUrl
-end
-
-local decryptedUrl = decodeUrl(encoded, key)
-loadstring(game:HttpGet(decryptedUrl))()`;
-    }
-
-    function updateOutput(scriptContent) {
-        const codeBlock = document.getElementById('finalCodeBlock');
-        codeBlock.textContent = scriptContent;
-        codeBlock.style.transition = "0.1s";
-        codeBlock.style.backgroundColor = "#10141f";
-        setTimeout(() => { codeBlock.style.backgroundColor = "#080c14"; }, 150);
-    }
-
-    function showToast(msg) {
-        const toast = document.getElementById('toastMsg');
-        toast.textContent = msg || "✅ تم النسخ إلى الحافظة!";
-        toast.classList.add('show');
-        setTimeout(() => {
-            toast.classList.remove('show');
-        }, 2000);
-    }
-
-    function encryptAndDisplay() {
-        let rawUrl = document.getElementById('rawUrl').value.trim();
-        if (!rawUrl) {
-            showToast("⚠️ الرجاء إدخال رابط صالح!");
-            return;
-        }
-        if (!rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) {
-            showToast("❌ الرابط يجب أن يبدأ بـ http:// أو https://");
-            return;
-        }
-
-        try {
-            const encoded = encodeUrlAdvanced(rawUrl);
-            let finalScript = generateScript(encoded);
-            updateOutput(finalScript);
-            showToast("✨ تم تشفير الرابط بنجاح! الكود جاهز.");
-        } catch(e) {
-            console.error(e);
-            showToast("⚠️ حدث خطأ أثناء التشفير، تأكد من الرابط.");
-        }
-    }
-
-    function copyFinalCode() {
-        const code = document.getElementById('finalCodeBlock').innerText;
-        if (!code || code === "// اضغط على \"تشفير الرابط\" لإنشاء الكود المشفر") {
-            showToast("⚠️ لا يوجد كود مشفر بعد! قم بتشفير رابط أولاً.");
-            return;
-        }
-        navigator.clipboard.writeText(code).then(() => {
-            showToast("📋 تم نسخ الكود المشفر بالكامل!");
-        }).catch(() => {
-            showToast("❌ فشل النسخ، حاول يدوياً.");
-        });
-    }
-
-    function setDefaultExample() {
-        const defaultUrl = "https://raw.githubusercontent.com/Z7F-KING/Z7F_MORE/refs/heads/main/Z7F-3DAD?token=GHSAT0AAAAAADWBLG55JO4NFDRZUJQN4QVQ2OMICGA";
-        document.getElementById('rawUrl').value = defaultUrl;
-        showToast("🔄 تم تعيين الرابط الافتراضي، اضغط تشفير");
-    }
-
-    function generateStars() {
-        const container = document.getElementById('bgStars');
-        for (let i = 0; i < 120; i++) {
-            let star = document.createElement('span');
-            let size = Math.random() * 3 + 1;
-            star.style.width = size + 'px';
-            star.style.height = size + 'px';
-            star.style.left = Math.random() * 100 + '%';
-            star.style.animationDelay = Math.random() * 20 + 's';
-            star.style.animationDuration = Math.random() * 12 + 8 + 's';
-            container.appendChild(star);
-        }
-    }
-
-    document.getElementById('encryptBtn').addEventListener('click', encryptAndDisplay);
-    document.getElementById('copyFinalCode').addEventListener('click', copyFinalCode);
-    document.getElementById('resetExample').addEventListener('click', setDefaultExample);
-    
-    generateStars();
-    setDefaultExample();
-</script>
+    </script>
 </body>
 </html>
