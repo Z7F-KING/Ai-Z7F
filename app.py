@@ -4,12 +4,12 @@ from flask import Flask, render_template, request, jsonify
 from dotenv import load_dotenv
 import openai
 
-# تحميل الإعدادات
 load_dotenv()
 app = Flask(__name__)
+
+# إعداد مفتاح الـ API - تأكد من وضعه في ملف .env
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# إعداد قاعدة البيانات لحفظ المحادثات
 def init_db():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
@@ -26,47 +26,32 @@ def index():
 
 @app.route('/chat', methods=['POST'])
 def chat():
+    if not openai.api_key:
+        return jsonify({"reply": "⚠️ خطأ: لم يتم ضبط API Key في السيرفر."}), 500
+        
     data = request.json
     user_msg = data.get("message")
-    mode = data.get("mode") # normal, thinking, quick
+    mode = data.get("mode", "normal")
 
-    # تخصيص ذكاء المبرمج (Python, Lua, Discord)
-    system_prompt = (
-        "أنت خبير برمجة محترف. لغاتك الأساسية هي Python و Lua. "
-        "خبير في بناء بوتات Discord. أجب دائماً بأكواد كاملة ونظيفة."
-    )
-
+    system_prompt = "أنت خبير برمجة (Python, Lua, Discord Bots). قدم أكواداً كاملة واحترافية."
+    
     if mode == "thinking":
-        system_prompt += "\n[وضع التفكير العميق]: حلل المنطق البرمجي بدقة، لا تختصر الكود، وتجنب الأخطاء المنطقية."
-        temp = 0.1
-    elif mode == "quick":
-        system_prompt += "\n[وضع سريع]: أجب باختصار مفيد ومباشر."
-        temp = 0.8
+        system_prompt += "\n[وضع التفكير العميق]: حلل المنطق البرمجي بدقة قصوى."
+        temp = 0.2
     else:
-        temp = 0.5
+        temp = 0.7
 
     try:
-        # حفظ رسالة المستخدم في القاعدة
-        conn = sqlite3.connect('database.db')
-        c = conn.cursor()
-        c.execute("INSERT INTO chat (role, content, mode) VALUES (?, ?, ?)", ('user', user_msg, mode))
-
-        # طلب الرد من الذكاء الاصطناعي
         response = openai.ChatCompletion.create(
-            model="gpt-4", 
+            model="gpt-3.5-turbo", # أو gpt-4 إذا كان حسابك يدعمه
             messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_msg}],
             temperature=temp
         )
         ai_reply = response.choices[0].message.content
-
-        # حفظ رد الذكاء الاصطناعي
-        c.execute("INSERT INTO chat (role, content, mode) VALUES (?, ?, ?)", ('assistant', ai_reply, mode))
-        conn.commit()
-        conn.close()
-
         return jsonify({"reply": ai_reply})
     except Exception as e:
-        return jsonify({"reply": f"❌ خطأ: {str(e)}"}), 500
+        print(f"Error: {e}")
+        return jsonify({"reply": "❌ الـ API لا يستجيب. تأكد من الرصيد أو المفتاح."}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.getenv("PORT", 5000)), debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
