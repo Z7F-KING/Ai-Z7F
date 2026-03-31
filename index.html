@@ -314,11 +314,7 @@
                 <div class="result-header">
                     <span><i class="fas fa-chart-line"></i> طريقة التشغيل</span>
                 </div>
-                <pre class="code-block" style="background: #03060c;">local a = (المتغير المشفر)
-local b = game
-local c = b["HttpGet"]
-local d = loadstring
-d(c(b, a))()</pre>
+                <pre class="code-block" style="background: #03060c;">loadstring(game:HttpGet(decryptedUrl))()</pre>
             </div>
         </div>
     </div>
@@ -330,22 +326,12 @@ d(c(b, a))()</pre>
 <div id="toastMsg" class="toast-msg">✅ تم النسخ إلى الحافظة!</div>
 
 <script>
-    // دوال التشفير المتقدمة مع دعم كامل لجميع الأحرف
+    // تحويل النص إلى Base64 (يدعم جميع الأحرف)
     function stringToBase64(str) {
-        // دعم كامل لليونيكود والأحرف الخاصة
         return btoa(Array.from(new TextEncoder().encode(str)).map(byte => String.fromCharCode(byte)).join(''));
     }
 
-    function base64ToString(b64) {
-        const binary = atob(b64);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) {
-            bytes[i] = binary.charCodeAt(i);
-        }
-        return new TextDecoder().decode(bytes);
-    }
-
-    function xorWithKey(text, key) {
+    function xorEncrypt(text, key) {
         let result = "";
         for (let i = 0; i < text.length; i++) {
             result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
@@ -353,28 +339,29 @@ d(c(b, a))()</pre>
         return result;
     }
 
+    // تشفير الرابط بالطريقة المطلوبة: Base64 -> XOR -> Base64
     function encodeUrlAdvanced(rawUrl) {
-        // الخطوة 1: Base64 للرابط
+        // الخطوة 1: تحويل الرابط إلى Base64
         let base64Str = stringToBase64(rawUrl);
-        // مفتاح XOR ثابت وقوي
-        const secretKey = "Z7F_KING_2026";
-        // الخطوة 2: XOR باستخدام المفتاح
-        let xorEncoded = xorWithKey(base64Str, secretKey);
-        // الخطوة 3: تحويل الناتج إلى Base64 مرة أخرى
+        // الخطوة 2: XOR باستخدام مفتاح ثابت (87)
+        let key = String.fromCharCode(87);
+        let xorEncoded = xorEncrypt(base64Str, key);
+        // الخطوة 3: تحويل الناتج إلى Base64
         let finalEncoded = stringToBase64(xorEncoded);
-        return {
-            final: finalEncoded,
-            key: secretKey
-        };
+        return finalEncoded;
     }
 
-    function generateScript(encodedData, xorKey) {
-        return `--[[ مشفر بواسطة Z7F OBF | Base64 + XOR ]]--
-local function decodeZ7F(enc, key)
-    local function b64decode(data)
+    function generateScript(encodedData) {
+        return `-- الرابط مشفر بـ Base64 ثم XOR بمفتاح سري
+local key = 87  -- مفتاح XOR (يمكنك تغييره)
+local encoded = "${encodedData}"
+
+-- دالة فك التشفير
+local function decodeUrl(enc, keyByte)
+    local function base64Decode(data)
         local b64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
         data = string.gsub(data, '[^'..b64chars..'=]', '')
-        local result = ''
+        local result = {}
         for i = 1, #data, 4 do
             local a, b, c, d = string.byte(data, i), string.byte(data, i+1), string.byte(data, i+2), string.byte(data, i+3)
             a = a and b64chars:find(string.char(a))-1 or 0
@@ -382,27 +369,27 @@ local function decodeZ7F(enc, key)
             c = c and b64chars:find(string.char(c))-1 or 0
             d = d and b64chars:find(string.char(d))-1 or 0
             local n = a*262144 + b*4096 + c*64 + d
-            result = result .. string.char(bit32.extract(n, 16, 8))
-            if c ~= 64 then result = result .. string.char(bit32.extract(n, 8, 8)) end
-            if d ~= 64 then result = result .. string.char(bit32.extract(n, 0, 8)) end
+            table.insert(result, string.char(bit32.extract(n, 16, 8)))
+            if c ~= 64 then table.insert(result, string.char(bit32.extract(n, 8, 8))) end
+            if d ~= 64 then table.insert(result, string.char(bit32.extract(n, 0, 8))) end
         end
-        return result
+        return table.concat(result)
     end
     
-    local b64Str = b64decode(enc)
+    -- فك الطبقة الأولى (Base64)
+    local firstDecode = base64Decode(enc)
+    -- فك XOR
     local xored = ""
-    for i = 1, #b64Str do
-        xored = xored .. string.char(string.byte(b64Str, i) ~ string.byte(key, ((i-1) % #key)+1))
+    for i = 1, #firstDecode do
+        xored = xored .. string.char(string.byte(firstDecode, i) ~ keyByte)
     end
-    local rawUrl = b64decode(xored)
-    return rawUrl
+    -- فك الطبقة الأخيرة (Base64)
+    local finalUrl = base64Decode(xored)
+    return finalUrl
 end
 
-local encoded = "${ENCODED}"
-local xorKey = "${XOR_KEY}"
-local decryptedUrl = decodeZ7F(encoded, xorKey)
-loadstring(game:HttpGet(decryptedUrl))()
-`;
+local decryptedUrl = decodeUrl(encoded, key)
+loadstring(game:HttpGet(decryptedUrl))()`;
     }
 
     function updateOutput(scriptContent) {
@@ -434,8 +421,8 @@ loadstring(game:HttpGet(decryptedUrl))()
         }
 
         try {
-            const { final, key } = encodeUrlAdvanced(rawUrl);
-            let finalScript = generateScript(final, key);
+            const encoded = encodeUrlAdvanced(rawUrl);
+            let finalScript = generateScript(encoded);
             updateOutput(finalScript);
             showToast("✨ تم تشفير الرابط بنجاح! الكود جاهز.");
         } catch(e) {
