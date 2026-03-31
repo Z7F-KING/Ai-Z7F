@@ -7,51 +7,69 @@ import openai
 load_dotenv()
 app = Flask(__name__)
 
-# إعداد مفتاح الـ API - تأكد من وضعه في ملف .env
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# ملاحظة: ضع مفتاحك هنا لمرة واحدة أو في ملف .env
+openai.api_key = os.getenv("OPENAI_API_KEY", "ضع_مفتاحك_هنا")
+
+def get_db():
+    conn = sqlite3.connect('ai_platform.db')
+    conn.row_factory = sqlite3.Row
+    return conn
 
 def init_db():
-    conn = sqlite3.connect('database.db')
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS chat 
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT, role TEXT, content TEXT, mode TEXT)''')
-    conn.commit()
-    conn.close()
-
+    with get_db() as conn:
+        conn.execute('''CREATE TABLE IF NOT EXISTS sessions 
+                        (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+        conn.execute('''CREATE TABLE IF NOT EXISTS messages 
+                        (id INTEGER PRIMARY KEY AUTOINCREMENT, session_id INTEGER, role TEXT, content TEXT, 
+                        FOREIGN KEY(session_id) REFERENCES sessions(id))''')
 init_db()
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
+@app.route('/get_sessions', methods=['GET'])
+def get_sessions():
+    with get_db() as conn:
+        sessions = conn.execute("SELECT * FROM sessions ORDER BY created_at DESC").fetchall()
+    return jsonify([dict(s) for s in sessions])
+
 @app.route('/chat', methods=['POST'])
 def chat():
-    if not openai.api_key:
-        return jsonify({"reply": "⚠️ خطأ: لم يتم ضبط API Key في السيرفر."}), 500
-        
     data = request.json
     user_msg = data.get("message")
+    session_id = data.get("session_id")
     mode = data.get("mode", "normal")
 
-    system_prompt = "أنت خبير برمجة (Python, Lua, Discord Bots). قدم أكواداً كاملة واحترافية."
-    
-    if mode == "thinking":
-        system_prompt += "\n[وضع التفكير العميق]: حلل المنطق البرمجي بدقة قصوى."
-        temp = 0.2
-    else:
-        temp = 0.7
+    with get_db() as conn:
+        # إذا كانت محادثة جديدة، أنشئ جلسة وسمّها
+        if not session_id:
+            title = user_msg[:30] + "..." if len(user_msg) > 30 else user_msg
+            cur = conn.execute("INSERT INTO sessions (title) VALUES (?)", (title,))
+            session_id = cur.lastrow_id
+        
+        conn.execute("INSERT INTO messages (session_id, role, content) VALUES (?, ?, ?)", (session_id, 'user', user_msg))
+        conn.commit()
+
+    # إعداد الـ Prompt المتخصص للبرمجة
+    system_p = "أنت خبير برمجة (Python, Lua). قدم أكواداً كاملة واحترافية."
+    temp = 0.2 if mode == "thinking" else 0.7
 
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo", # أو gpt-4 إذا كان حسابك يدعمه
-            messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_msg}],
+            model="gpt-3.5-turbo",
+            messages=[{"role": "system", "content": system_p}, {"role": "user", "content": user_msg}],
             temperature=temp
         )
         ai_reply = response.choices[0].message.content
-        return jsonify({"reply": ai_reply})
-    except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"reply": "❌ الـ API لا يستجيب. تأكد من الرصيد أو المفتاح."}), 500
+        
+        with get_db() as conn:
+            conn.execute("INSERT INTO messages (session_id, role, content) VALUES (?, ?, ?)", (session_id, 'assistant', ai_reply))
+            conn.commit()
+
+        return jsonify({"reply": ai_reply, "session_id": session_id})
+    except:
+        return jsonify({"reply": "⚠️ خطأ: تأكد من صلاحية الـ API Key الخاص بك."}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
