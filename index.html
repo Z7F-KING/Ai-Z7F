@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>MORO Cipher | تشفير روابط سكربتات Roblox</title>
+    <title>Z7F OBF | تشفير روابط سكربتات Roblox</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -21,7 +21,6 @@
             padding: 2rem 1.5rem;
         }
 
-        /* أنيميشن الخلفية */
         .bg-animation {
             position: fixed;
             top: 0;
@@ -56,7 +55,6 @@
             z-index: 10;
         }
 
-        /* بطاقة رئيسية */
         .card {
             background: rgba(15, 22, 36, 0.7);
             backdrop-filter: blur(12px);
@@ -101,7 +99,6 @@
             border: 1px solid rgba(66, 133, 244, 0.4);
         }
 
-        /* محتوى */
         .content {
             padding: 2rem;
         }
@@ -143,7 +140,6 @@
             box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2);
         }
 
-        /* أزرار */
         .button-group {
             display: flex;
             gap: 1rem;
@@ -189,7 +185,6 @@
             transform: translateY(-2px);
         }
 
-        /* منطقة النتيجة */
         .result-area {
             background: #0b0f1a;
             border-radius: 1.5rem;
@@ -222,6 +217,9 @@
             transition: all 0.2s;
             padding: 0.4rem 0.8rem;
             border-radius: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .copy-btn:hover {
@@ -289,15 +287,15 @@
 <div class="container">
     <div class="card">
         <div class="header">
-            <h1><i class="fas fa-shield-hooded" style="margin-right: 8px;"></i> MORO ENCODER</h1>
-            <p>تشفير متقدم لروابط السكربتات (Base64 + XOR) · صعوبة فك عالية</p>
-            <div class="badge"><i class="fas fa-lock"></i> تشفير غير قابل للفك المباشر</div>
+            <h1><i class="fas fa-skull" style="margin-right: 8px;"></i> Z7F OBF</h1>
+            <p>تشفير روابط السكربتات بحماية قوية</p>
+            <div class="badge"><i class="fas fa-lock"></i> تشفير قوي جداً (صنع من قِبل زحف)</div>
         </div>
 
         <div class="content">
             <div class="input-group">
                 <label><i class="fas fa-link"></i> الرابط الخام (Raw URL)</label>
-                <input type="text" id="rawUrl" class="url-input" placeholder="https://raw.githubusercontent.com/..." value="https://raw.githubusercontent.com/Z7F-KING/Z7F_MORE/refs/heads/main/Z7F-3DAD?token=GHSAT0AAAAAADWBLG55JO4NFDRZUJQN4QVQ2OMICGA">
+                <input type="text" id="rawUrl" class="url-input" placeholder="https://raw.githubusercontent.com/... أو https://pastebin.com/raw/...">
             </div>
 
             <div class="button-group">
@@ -307,8 +305,8 @@
 
             <div class="result-area">
                 <div class="result-header">
-                    <span><i class="fas fa-code"></i> السكربت النهائي المشفر (جاهز للنسخ)</span>
-                    <button id="copyFinalCode" class="copy-btn"><i class="fas fa-copy"></i> نسخ الكود</button>
+                    <span><i class="fas fa-code"></i> السكربت المشفر</span>
+                    <button id="copyFinalCode" class="copy-btn"><i class="fas fa-copy"></i> <span>نسخ الكود</span></button>
                 </div>
                 <pre id="finalCodeBlock" class="code-block">// اضغط على "تشفير الرابط" لإنشاء الكود المشفر</pre>
             </div>
@@ -325,20 +323,26 @@ d(c(b, a))()</pre>
         </div>
     </div>
     <footer>
-        <i class="fas fa-skull"></i> حماية متقدمة · XOR dynamic key + Base64 · لا يمكن فك التشفير إلا عبر السكربت نفسه
+        <i class="fas fa-skull"></i> Z7F OBF · حماية متقدمة · Base64 + XOR
     </footer>
 </div>
 
 <div id="toastMsg" class="toast-msg">✅ تم النسخ إلى الحافظة!</div>
 
 <script>
-    // ----- دوال التشفير المتقدمة (Base64 + XOR) -----
+    // دوال التشفير المتقدمة مع دعم كامل لجميع الأحرف
     function stringToBase64(str) {
-        return btoa(unescape(encodeURIComponent(str)));
+        // دعم كامل لليونيكود والأحرف الخاصة
+        return btoa(Array.from(new TextEncoder().encode(str)).map(byte => String.fromCharCode(byte)).join(''));
     }
 
     function base64ToString(b64) {
-        return decodeURIComponent(escape(atob(b64)));
+        const binary = atob(b64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        return new TextDecoder().decode(bytes);
     }
 
     function xorWithKey(text, key) {
@@ -349,16 +353,14 @@ d(c(b, a))()</pre>
         return result;
     }
 
-    // تشفير الرابط بطريقة Base64 -> XOR (بمفتاح عشوائي لكن ثابت بالجلسة لجعل النتيجة فريدة)
-    // لتعقيد الفك، المفتاح سيكون مدمج ضمن الكود.
     function encodeUrlAdvanced(rawUrl) {
         // الخطوة 1: Base64 للرابط
         let base64Str = stringToBase64(rawUrl);
-        // مفتاح XOR عشوائي مكون من 8 أحرف (يضمن صعوبة الفك السريع)
-        const secretKey = "M0r0C1ph3r";
+        // مفتاح XOR ثابت وقوي
+        const secretKey = "Z7F_KING_2026";
         // الخطوة 2: XOR باستخدام المفتاح
         let xorEncoded = xorWithKey(base64Str, secretKey);
-        // الخطوة 3: تحويل الناتج إلى Base64 مرة أخرى (للتشفير المزدوج)
+        // الخطوة 3: تحويل الناتج إلى Base64 مرة أخرى
         let finalEncoded = stringToBase64(xorEncoded);
         return {
             final: finalEncoded,
@@ -366,53 +368,46 @@ d(c(b, a))()</pre>
         };
     }
 
-    // إنشاء السكربت النهائي مع دالة فك التشفير داخلياً
     function generateScript(encodedData, xorKey) {
-        // سنقوم ببناء سكربت يحتوي على دالة فك التشفير ثم تنفيذ loadstring
-        return `--[[ مشفر بطريقة Base64 + XOR | بواسطة MORO ENCODER ]]--
-local function decodeMoro(enc, key)
-    local function b64d(data)
-        return (function(d)
-            return (d:gsub('..', function(c)
-                return string.char((tonumber(c, 16) or 0) % 256)
-            end))
-        end)((function(s)
-            return (s:gsub('=', ''):gsub('%w', function(c)
-                local n = c:byte()
-                if n >= 65 and n <= 90 then n = n - 65
-                elseif n >= 97 and n <= 122 then n = n - 71
-                elseif n >= 48 and n <= 57 then n = n + 4
-                elseif c == '+' then n = 62
-                elseif c == '/' then n = 63 end
-                return string.format('%02x', n)
-            end))
-        end)(data))
+        return `--[[ مشفر بواسطة Z7F OBF | Base64 + XOR ]]--
+local function decodeZ7F(enc, key)
+    local function b64decode(data)
+        local b64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+        data = string.gsub(data, '[^'..b64chars..'=]', '')
+        local result = ''
+        for i = 1, #data, 4 do
+            local a, b, c, d = string.byte(data, i), string.byte(data, i+1), string.byte(data, i+2), string.byte(data, i+3)
+            a = a and b64chars:find(string.char(a))-1 or 0
+            b = b and b64chars:find(string.char(b))-1 or 0
+            c = c and b64chars:find(string.char(c))-1 or 0
+            d = d and b64chars:find(string.char(d))-1 or 0
+            local n = a*262144 + b*4096 + c*64 + d
+            result = result .. string.char(bit32.extract(n, 16, 8))
+            if c ~= 64 then result = result .. string.char(bit32.extract(n, 8, 8)) end
+            if d ~= 64 then result = result .. string.char(bit32.extract(n, 0, 8)) end
+        end
+        return result
     end
-    local b64Str = (function(s) return (s:gsub('..', function(c) return string.char(tonumber(c, 16)) end)) end)((function(s) return (s:gsub('%w', function(c) local n = c:byte() if n >= 65 and n <= 90 then n = n - 65 elseif n >= 97 and n <= 122 then n = n - 71 elseif n >= 48 and n <= 57 then n = n + 4 elseif c == '+' then n = 62 elseif c == '/' then n = 63 end return string.format('%02x', n) end):gsub('..', function(c) return string.char(tonumber(c, 16)) end)) end)(enc))
+    
+    local b64Str = b64decode(enc)
     local xored = ""
     for i = 1, #b64Str do
         xored = xored .. string.char(string.byte(b64Str, i) ~ string.byte(key, ((i-1) % #key)+1))
     end
-    local rawUrl = (function(s) return (s:gsub('..', function(c) return string.char(tonumber(c, 16)) end)) end)((function(s) return (s:gsub('%w', function(c) local n = c:byte() if n >= 65 and n <= 90 then n = n - 65 elseif n >= 97 and n <= 122 then n = n - 71 elseif n >= 48 and n <= 57 then n = n + 4 elseif c == '+' then n = 62 elseif c == '/' then n = 63 end return string.format('%02x', n) end):gsub('..', function(c) return string.char(tonumber(c, 16)) end)) end)(xored))
+    local rawUrl = b64decode(xored)
     return rawUrl
 end
 
 local encoded = "${ENCODED}"
 local xorKey = "${XOR_KEY}"
-local decryptedUrl = decodeMoro(encoded, xorKey)
-local a = decryptedUrl
-local b = game
-local c = b["HttpGet"]
-local d = loadstring
-d(c(b, a))()
+local decryptedUrl = decodeZ7F(encoded, xorKey)
+loadstring(game:HttpGet(decryptedUrl))()
 `;
     }
 
-    // تحديث واجهة النتيجة
     function updateOutput(scriptContent) {
         const codeBlock = document.getElementById('finalCodeBlock');
         codeBlock.textContent = scriptContent;
-        // تأثير وميض بسيط
         codeBlock.style.transition = "0.1s";
         codeBlock.style.backgroundColor = "#10141f";
         setTimeout(() => { codeBlock.style.backgroundColor = "#080c14"; }, 150);
@@ -427,7 +422,6 @@ d(c(b, a))()
         }, 2000);
     }
 
-    // دالة التشفير الرئيسية
     function encryptAndDisplay() {
         let rawUrl = document.getElementById('rawUrl').value.trim();
         if (!rawUrl) {
@@ -450,7 +444,6 @@ d(c(b, a))()
         }
     }
 
-    // نسخ الكود
     function copyFinalCode() {
         const code = document.getElementById('finalCodeBlock').innerText;
         if (!code || code === "// اضغط على \"تشفير الرابط\" لإنشاء الكود المشفر") {
@@ -464,14 +457,12 @@ d(c(b, a))()
         });
     }
 
-    // مثال افتراضي (الرابط الذي أرسلته)
     function setDefaultExample() {
         const defaultUrl = "https://raw.githubusercontent.com/Z7F-KING/Z7F_MORE/refs/heads/main/Z7F-3DAD?token=GHSAT0AAAAAADWBLG55JO4NFDRZUJQN4QVQ2OMICGA";
         document.getElementById('rawUrl').value = defaultUrl;
         showToast("🔄 تم تعيين الرابط الافتراضي، اضغط تشفير");
     }
 
-    // خلفية النجوم المتحركة
     function generateStars() {
         const container = document.getElementById('bgStars');
         for (let i = 0; i < 120; i++) {
@@ -491,7 +482,6 @@ d(c(b, a))()
     document.getElementById('resetExample').addEventListener('click', setDefaultExample);
     
     generateStars();
-    // تعيين مثال أولي
     setDefaultExample();
 </script>
 </body>
