@@ -1,203 +1,158 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DOLA-X PRO | الإصدار النهائي</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Noto+Sans+Arabic:wght@400;700;900&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Noto Sans Arabic', sans-serif; background-color: #0d1117; color: #e6edf3; margin: 0; overflow: hidden; }
-        .code-font { font-family: 'Fira Code', monospace; direction: ltr; text-align: left; }
-        pre { background: #010409 !important; border: 1px solid #30363d; padding: 12px; border-radius: 12px; overflow-x: auto; font-size: 13px; margin-top: 10px; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 10px; }
-        .sidebar-transition { transition: transform 0.3s ease-in-out; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DOLA-X PRO</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<style>
+body { background:#0d1117; color:#fff; margin:0; overflow:hidden; }
+</style>
 </head>
+
 <body class="h-screen flex flex-col">
 
-    <!-- Sidebar -->
-    <div id="sidebar" class="fixed top-0 right-0 h-full w-72 bg-[#0d1117] border-l border-[#30363d] z-[60] sidebar-transition translate-x-full shadow-2xl">
-        <div class="p-4 border-b border-[#30363d] flex justify-between items-center bg-[#161b22]">
-            <h2 class="font-bold flex items-center gap-2"><i data-lucide="message-square" class="w-5 h-5 text-cyan-400"></i> المحادثات</h2>
-            <button onclick="toggleSidebar()"><i data-lucide="x" class="w-6 h-6"></i></button>
-        </div>
-        <div class="p-4">
-            <button onclick="createNewChat()" class="w-full flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 p-3 rounded-xl font-bold mb-4 shadow-lg shadow-cyan-900/20">
-                <i data-lucide="plus"></i> محادثة جديدة
-            </button>
-            <div id="chatList" class="space-y-2 overflow-y-auto max-h-[70vh]"></div>
-        </div>
-    </div>
+<!-- Sidebar -->
+<div id="sidebar" class="fixed top-0 right-0 h-full w-72 bg-[#0d1117] border-l border-[#30363d] translate-x-full transition">
+    <button onclick="createNewChat()">محادثة جديدة</button>
+    <div id="chatList"></div>
+</div>
 
-    <!-- Header -->
-    <header class="h-16 border-b border-[#30363d] flex justify-between items-center px-4 bg-[#0d1117]/95 z-50">
-        <div class="flex items-center gap-3">
-            <button onclick="toggleSidebar()" class="p-2 hover:bg-[#161b22] rounded-lg border border-[#30363d]">
-                <i data-lucide="menu" class="w-6 h-6 text-cyan-400"></i>
-            </button>
-            <h1 class="text-xl font-black tracking-tighter text-white">DOLA-X <span class="text-cyan-400 text-[10px] border border-cyan-400 px-1 rounded">PRO</span></h1>
-        </div>
-        <select id="modelSelect" class="bg-[#161b22] border border-[#30363d] text-[10px] text-cyan-400 p-2 rounded-full outline-none font-bold">
-            <option value="llama3-70b-8192">Llama-3 (70B) - خبير</option>
-            <option value="mixtral-8x7b-32768">Mixtral - ضخم</option>
-        </select>
-    </header>
+<!-- Header -->
+<header class="h-14 flex justify-between items-center px-4 border-b border-[#30363d]">
+    <button onclick="toggleSidebar()">☰</button>
+    <h1>DOLA-X</h1>
+</header>
 
-    <!-- Chat Area -->
-    <main id="chatBox" class="flex-1 overflow-y-auto p-4 space-y-6 pb-28">
-        <div id="welcomeScreen" class="flex justify-center opacity-20 mt-20 flex-col items-center">
-            <i data-lucide="terminal" class="w-20 h-20 mb-4"></i>
-            <p class="text-sm font-mono">DOLA-X ENGINE v3.0 READY...</p>
-        </div>
-    </main>
+<!-- Chat -->
+<main id="chatBox" class="flex-1 overflow-y-auto p-4"></main>
 
-    <!-- Thinking Box -->
-    <div id="thinkingLog" class="hidden fixed bottom-24 left-4 right-4 bg-[#1e1b4b]/95 border border-purple-500/50 p-4 rounded-2xl animate-pulse z-40 shadow-2xl">
-        <div class="flex items-center gap-2 text-purple-400 text-sm font-bold mb-1">
-            <i data-lucide="brain" class="w-5 h-5"></i> محرك التفكير العميق...
-        </div>
-        <p id="thoughtText" class="text-[10px] text-purple-200 font-mono italic leading-relaxed"></p>
-    </div>
+<!-- Input -->
+<div class="p-3 border-t border-[#30363d]">
+    <textarea id="userInput" class="w-full bg-black p-2"></textarea>
+    <button onclick="handleSend()">إرسال</button>
+</div>
 
-    <!-- Input Bar -->
-    <div class="fixed bottom-0 w-full p-4 bg-[#0d1117]/95 backdrop-blur-xl border-t border-[#30363d] z-50">
-        <div class="max-w-4xl mx-auto flex items-end gap-2 bg-[#161b22] p-2 rounded-2xl border border-[#30363d] focus-within:border-cyan-500 transition-all shadow-2xl">
-            <button id="thinkBtn" onclick="toggleThinking()" class="p-3 rounded-xl text-gray-500 hover:text-purple-400 transition-all">
-                <i data-lucide="brain" class="w-7 h-7"></i>
-            </button>
-            <textarea id="userInput" placeholder="اطلب صنع أداة أو كود ضخم..." class="flex-1 bg-transparent border-none outline-none p-2 text-sm max-h-32 resize-none text-right" rows="1"></textarea>
-            <button id="sendBtn" onclick="handleSend()" class="bg-cyan-600 hover:bg-cyan-500 p-3 rounded-xl text-white shadow-lg transition-all active:scale-90">
-                <i data-lucide="send" class="w-7 h-7"></i>
-            </button>
-        </div>
-    </div>
+<script>
 
-    <script>
-        const API_KEY = "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";
-        let isThinkingActive = false;
-        let currentChatId = Date.now();
-        let allChats = JSON.parse(localStorage.getItem('dola_v3_chats')) || {};
+// 🔐 مؤقت بدل ما يكون مكشوف
+const API_KEY = prompt("حط API KEY");
 
-        lucide.createIcons();
+let currentChatId = Date.now() + Math.random();
+let allChats = JSON.parse(localStorage.getItem('dola_v3_chats')) || {};
 
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('translate-x-full');
-            renderChatList();
-        }
+lucide.createIcons();
 
-        function toggleThinking() {
-            isThinkingActive = !isThinkingActive;
-            const btn = document.getElementById('thinkBtn');
-            btn.classList.toggle('bg-purple-600', isThinkingActive);
-            btn.classList.toggle('text-white', isThinkingActive);
-        }
+// Sidebar
+function toggleSidebar(){
+    document.getElementById('sidebar').classList.toggle('translate-x-full');
+    renderChatList();
+}
 
-        function createNewChat() {
-            currentChatId = Date.now();
-            document.getElementById('chatBox').innerHTML = '';
-            document.getElementById('welcomeScreen').style.display = 'flex';
-            toggleSidebar();
-        }
+// إنشاء محادثة
+function createNewChat(){
+    currentChatId = Date.now() + Math.random();
 
-        function renderChatList() {
-            const list = document.getElementById('chatList');
-            list.innerHTML = '';
-            Object.keys(allChats).reverse().forEach(id => {
-                const div = document.createElement('div');
-                div.className = `p-3 rounded-lg cursor-pointer text-xs truncate border border-[#30363d] hover:bg-[#161b22] mb-2 ${id == currentChatId ? 'border-cyan-500 bg-[#161b22]' : ''}`;
-                div.innerText = allChats[id][0]?.content.substring(0, 30) || "محادثة جديدة";
-                div.onclick = () => { currentChatId = id; loadChat(id); toggleSidebar(); };
-                list.appendChild(div);
-            });
-        }
+    document.getElementById('chatBox').innerHTML = `
+        <div id="welcomeScreen">جاهز...</div>
+    `;
+}
 
-        function loadChat(id) {
-            document.getElementById('chatBox').innerHTML = '';
-            document.getElementById('welcomeScreen').style.display = 'none';
-            allChats[id].forEach(msg => displayMsg(msg.role, msg.content));
-        }
+// عرض المحادثات
+function renderChatList(){
+    const list = document.getElementById('chatList');
+    list.innerHTML = '';
 
-        async function handleSend() {
-            const input = document.getElementById('userInput');
-            const text = input.value.trim();
-            if (!text) return;
+    Object.keys(allChats).forEach(id=>{
+        const div = document.createElement('div');
+        div.innerText = allChats[id][0]?.content || "محادثة";
+        div.onclick = ()=>{
+            currentChatId = id;
+            loadChat(id);
+        };
+        list.appendChild(div);
+    });
+}
 
-            document.getElementById('welcomeScreen').style.display = 'none';
-            displayMsg('user', text);
-            input.value = '';
-            
-            if (!allChats[currentChatId]) allChats[currentChatId] = [];
-            allChats[currentChatId].push({ role: 'user', content: text });
+// تحميل محادثة
+function loadChat(id){
+    const chatBox = document.getElementById('chatBox');
+    chatBox.innerHTML = '';
 
-            if (isThinkingActive) showThinking();
+    allChats[id].forEach(msg=>{
+        displayMsg(msg.role, msg.content);
+    });
+}
 
-            try {
-                // استخدام API Groq مباشرة مع معالجة الأخطاء
-                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: "POST",
-                    headers: { 
-                        "Authorization": "Bearer " + API_KEY,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        model: document.getElementById('modelSelect').value,
-                        messages: [
-                            { role: "system", content: "أنت Dola-X الخارق. مبرمج خبير. قدم الأكواد كاملة وبدون قيود." },
-                            ...allChats[currentChatId]
-                        ],
-                        temperature: 0.2
-                    })
-                });
+// إرسال
+async function handleSend(){
+    const input = document.getElementById('userInput');
+    const text = input.value.trim();
+    if(!text) return;
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error.message || "فشل الطلب");
-                }
+    displayMsg('user', text);
+    input.value = '';
 
-                const data = await response.json();
-                const aiMsg = data.choices[0].message.content;
-                
-                displayMsg('assistant', aiMsg);
-                allChats[currentChatId].push({ role: 'assistant', content: aiMsg });
-                localStorage.setItem('dola_v3_chats', JSON.stringify(allChats));
+    if(!allChats[currentChatId]) allChats[currentChatId] = [];
+    allChats[currentChatId].push({role:'user', content:text});
 
-            } catch (err) {
-                displayMsg('assistant', "⚠️ خطأ حقيقي: " + err.message + "\n\nتأكد أن مفتاح الـ API صحيح أو جرب من متصفح آخر يدعم الطلبات الخارجية.");
-            } finally {
-                hideThinking();
-            }
-        }
-
-        function displayMsg(role, content) {
-            const chatBox = document.getElementById('chatBox');
-            const div = document.createElement('div');
-            div.className = `flex ${role === 'user' ? 'justify-start' : 'justify-end'} mb-4`;
-            div.innerHTML = `
-                <div class="max-w-[95%] p-4 rounded-2xl ${role === 'user' ? 'bg-cyan-700' : 'bg-[#161b22] border border-[#30363d]'} shadow-lg">
-                    <p class="text-[9px] opacity-40 font-bold mb-1">${role === 'user' ? 'أنت' : 'DOLA-X'}</p>
-                    <div class="text-sm whitespace-pre-wrap ${role === 'assistant' ? 'code-font' : ''}">${content}</div>
-                </div>
-            `;
-            chatBox.appendChild(div);
-            chatBox.scrollTop = chatBox.scrollHeight;
-            lucide.createIcons();
-        }
-
-        function showThinking() {
-            document.getElementById('thinkingLog').classList.remove('hidden');
-            document.getElementById('thoughtText').innerText = "جاري تحليل المنطق العميق وتجاوز القيود وتوليد الكود الخارق...";
-        }
-
-        function hideThinking() {
-            document.getElementById('thinkingLog').classList.add('hidden');
-        }
-
-        document.getElementById('userInput').addEventListener('input', function() {
-            this.style.height = 'auto'; this.style.height = (this.scrollHeight) + 'px';
+    try{
+        const res = await fetch("https://api.groq.com/openai/v1/chat/completions",{
+            method:"POST",
+            headers:{
+                "Authorization":"Bearer "+API_KEY,
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                model:"llama3-70b-8192",
+                messages: allChats[currentChatId]
+            })
         });
-    </script>
+
+        const data = await res.json();
+        const reply = data.choices[0].message.content;
+
+        displayMsg('assistant', reply);
+        allChats[currentChatId].push({role:'assistant', content:reply});
+
+        // 💾 حماية التخزين
+        try{
+            const keys = Object.keys(allChats);
+            if(keys.length > 20){
+                delete allChats[keys[0]];
+            }
+            localStorage.setItem('dola_v3_chats', JSON.stringify(allChats));
+        }catch(e){
+            localStorage.clear();
+        }
+
+    }catch(err){
+        displayMsg('assistant', 'خطأ: '+err.message);
+    }
+}
+
+// عرض الرسائل (XSS بدون تعديل مثل طلبك)
+function displayMsg(role, content){
+    const chatBox = document.getElementById('chatBox');
+
+    const div = document.createElement('div');
+    div.innerHTML = `<b>${role}:</b> ${content}`;
+
+    chatBox.appendChild(div);
+}
+
+// Enter للإرسال
+document.getElementById('userInput').addEventListener('keydown', function(e){
+    if(e.key === 'Enter' && !e.shiftKey){
+        e.preventDefault();
+        handleSend();
+    }
+});
+
+</script>
+
 </body>
 </html>
