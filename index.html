@@ -2,123 +2,150 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dola AI Studio | DeepSeek Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dola AI Mobile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0d1117; --side: #161b22; --accent: #58a6ff; --text: #c9d1d9;
-            --deep-purple: #8957e5; --user-bg: #1f2937;
+            --bg: #0b0e14; --card: #17191e; --accent: #3b82f6; --text: #efefef;
+            --user-msg: #2b303b; --ai-msg: #1e2229; --think: #8b5cf6;
         }
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; }
-        
-        /* Navbar */
-        nav { background: var(--side); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d; }
-        .logo { font-weight: bold; font-size: 1.5rem; color: var(--accent); }
-        select { background: #21262d; color: white; border: 1px solid #30363d; padding: 5px 10px; border-radius: 6px; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text);
+            margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+        }
 
-        /* Chat Area */
-        #chat-box { flex: 1; overflow-y: auto; padding: 20px 15%; display: flex; flex-direction: column; gap: 20px; }
-        .msg { padding: 15px; border-radius: 12px; line-height: 1.6; max-width: 85%; position: relative; }
-        .user { align-self: flex-end; background: var(--user-bg); border: 1px solid #30363d; }
-        .ai { align-self: flex-start; background: #161b22; border: 1px solid var(--accent); }
-        
-        .thinking { color: var(--deep-purple); font-size: 0.85rem; margin-bottom: 10px; display: none; font-style: italic; }
-        .status { font-size: 0.7rem; color: #8b949e; text-align: center; padding: 5px; }
+        /* الهيدر العلوي - متناسق مع الجوال */
+        header {
+            padding: 12px 15px; background: rgba(11, 14, 20, 0.95);
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #2d3139; z-index: 10;
+        }
+        .logo { font-weight: bold; font-size: 1.1rem; color: var(--accent); }
+        select {
+            background: #2d3139; color: white; border: 1px solid #3f444e;
+            padding: 5px 8px; border-radius: 8px; font-size: 0.8rem; outline: none;
+        }
 
-        /* Input Box */
-        .input-wrapper { padding: 20px 15%; background: var(--bg); }
-        .input-area { background: #21262d; border: 1px solid #30363d; border-radius: 12px; display: flex; padding: 10px; gap: 10px; align-items: center; }
-        textarea { flex: 1; background: transparent; border: none; color: white; outline: none; resize: none; font-family: inherit; font-size: 1rem; }
+        /* منطقة الرسائل - قابلة للسحب */
+        #chat-window {
+            flex: 1; overflow-y: auto; padding: 15px;
+            display: flex; flex-direction: column; gap: 15px;
+            padding-bottom: 100px; /* مساحة لصندوق الإدخال */
+        }
+        .msg { max-width: 90%; padding: 12px 16px; border-radius: 18px; line-height: 1.5; font-size: 0.95rem; }
+        .user { align-self: flex-end; background: var(--user-msg); border-bottom-right-radius: 4px; }
+        .ai { align-self: flex-start; background: var(--ai-msg); border: 1px solid #2d3139; border-bottom-left-radius: 4px; }
         
-        .btn-deep { background: transparent; border: 1px solid var(--deep-purple); color: var(--deep-purple); padding: 4px 12px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; }
-        .btn-deep.active { background: var(--deep-purple); color: white; }
-        .btn-send { background: var(--accent); border: none; color: white; padding: 8px 15px; border-radius: 8px; cursor: pointer; }
+        .thinking-tag {
+            display: none; color: var(--think); font-size: 0.75rem; 
+            margin-bottom: 5px; font-weight: bold; border-right: 2px solid var(--think); padding-right: 8px;
+        }
+
+        /* صندوق الإدخال السفلي - ثابت ومريح لليد */
+        .input-fixed {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: linear-gradient(transparent, var(--bg) 20%);
+            padding: 15px; padding-bottom: 25px; /* مساحة سحب الجوال السفلي */
+        }
+        .input-box {
+            background: #22252d; border: 1px solid #3f444e; border-radius: 25px;
+            display: flex; align-items: center; padding: 8px 15px; gap: 8px;
+        }
+        textarea {
+            flex: 1; background: transparent; border: none; color: white;
+            resize: none; max-height: 120px; outline: none; font-size: 1rem; padding: 5px 0;
+        }
+
+        /* أزرار الأكشن */
+        .btn-action {
+            width: 38px; height: 38px; border-radius: 50%; border: none;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+        .btn-deep {
+            background: transparent; color: var(--think); border: 1px solid var(--think);
+            font-size: 0.6rem; width: auto; height: 28px; padding: 0 10px; border-radius: 15px;
+        }
+        .btn-deep.active { background: var(--think); color: white; }
+        .btn-send { background: var(--accent); color: white; font-size: 1.2rem; }
+
+        /* حالة التحميل */
+        .loader { font-size: 0.7rem; text-align: center; color: #666; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
-<nav>
-    <div class="logo">Dola AI</div>
-    <select id="model-select">
-        <option value="DeepSeek-V3-GGUF">DeepSeek V3 (WebGPU)</option>
-        <option value="Llama-3-8B">Llama 3</option>
+<header>
+    <div class="logo">Dola Mobile</div>
+    <select id="modelSelect">
+        <option value="deepseek">DeepSeek V3</option>
+        <option value="chatgpt">ChatGPT 4o</option>
+        <option value="llama3">Llama 3</option>
     </select>
-</nav>
+</header>
 
-<div id="status" class="status">جاهز للعمل..</div>
-
-<div id="chat-box">
-    <div class="msg ai">أهلاً بك! أنا ذكاؤك الاصطناعي الخاص على GitHub. اسألني أي شيء.</div>
+<div id="chat-window">
+    <div class="msg ai">أهلاً! أنا Dola AI. كيف يمكنني مساعدتك اليوم؟</div>
 </div>
 
-<div class="input-wrapper">
-    <div class="input-area">
-        <button class="btn-deep" id="deep-btn" onclick="toggleDeep()">التفكير العميق: OFF</button>
-        <textarea id="user-input" rows="1" placeholder="اكتب سؤالك هنا..."></textarea>
-        <button class="btn-send" id="send-btn">إرسال</button>
+<div class="input-fixed">
+    <div id="status" class="loader">جاهز للعمل</div>
+    <div class="input-box">
+        <button class="btn-deep" id="deepBtn" onclick="toggleDeep()">تفكير</button>
+        <textarea id="userInput" placeholder="اسألني..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+        <button class="btn-send" onclick="handleSend()">↑</button>
     </div>
 </div>
 
-<script type="module">
-    // استخدام مكتبة WebLLM لتشغيل الموديل داخل المتصفح مباشرة
-    import * as webllm from "https://esm.run/@mlc-ai/web-llm";
+<script>
+    let isDeepActive = false;
 
-    let engine;
-    let isDeep = false;
-    const chatBox = document.getElementById('chat-box');
-    const status = document.getElementById('status');
-
-    // وظيفة التفكير العميق
-    window.toggleDeep = () => {
-        isDeep = !isDeep;
-        document.getElementById('deep-btn').classList.toggle('active');
-        document.getElementById('deep-btn').innerText = isDeep ? "التفكير العميق: ON" : "التفكير العميق: OFF";
-    };
-
-    async function initAI() {
-        status.innerText = "جاري تحميل محرك الذكاء الاصطناعي (قد يستغرق وقتاً في المرة الأولى)...";
-        engine = await webllm.CreateMLCEngine(document.getElementById('model-select').value, {
-            initProgressCallback: (p) => status.innerText = `جاري التحميل: ${Math.round(p.progress * 100)}%`
-        });
-        status.innerText = "متصل وجاهز!";
+    function toggleDeep() {
+        isDeepActive = !isDeepActive;
+        const btn = document.getElementById('deepBtn');
+        btn.classList.toggle('active');
+        btn.innerText = isDeepActive ? "تفكير ON" : "تفكير";
     }
 
-    document.getElementById('send-btn').onclick = async () => {
-        const input = document.getElementById('user-input');
-        const prompt = input.value.trim();
-        if(!prompt) return;
-
-        if(!engine) await initAI();
-
-        // إضافة رسالة المستخدم
-        const userMsg = document.createElement('div');
-        userMsg.className = 'msg user';
-        userMsg.innerText = prompt;
-        chatBox.appendChild(userMsg);
-        input.value = '';
-
-        // إضافة رسالة الـ AI
-        const aiMsg = document.createElement('div');
-        aiMsg.className = 'msg ai';
-        aiMsg.innerHTML = `<div class="thinking" id="think-box">جاري تحليل الطلب بعمق...</div><div class="text"></div>`;
-        chatBox.appendChild(aiMsg);
+    function addMessage(text, type) {
+        const win = document.getElementById('chat-window');
+        const div = document.createElement('div');
+        div.className = `msg ${type}`;
         
-        if(isDeep) aiMsg.querySelector('#think-box').style.display = 'block';
-
-        const chunks = await engine.chat.completions.create({
-            messages: [{ role: "user", content: prompt }],
-            stream: true
-        });
-
-        let reply = "";
-        for await (const chunk of chunks) {
-            const content = chunk.choices[0]?.delta?.content || "";
-            reply += content;
-            aiMsg.querySelector('.text').innerText = reply;
-            chatBox.scrollTop = chatBox.scrollHeight;
+        let content = '';
+        if (type === 'ai' && isDeepActive) {
+            content += `<div class="thinking-tag">تحليل عميق جارٍ...</div>`;
         }
-    };
+        content += `<div class="text-content">${text}</div>`;
+        
+        div.innerHTML = content;
+        win.appendChild(div);
+        if (type === 'ai' && isDeepActive) {
+            setTimeout(() => div.querySelector('.thinking-tag').style.display = 'block', 100);
+        }
+        win.scrollTo({ top: win.scrollHeight, behavior: 'smooth' });
+        return div;
+    }
+
+    async function handleSend() {
+        const input = document.getElementById('userInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        addMessage(text, 'user');
+        input.value = '';
+        input.style.height = 'auto';
+
+        // محاكاة الرد (يمكنك ربط الـ API هنا كما شرحنا سابقاً)
+        const aiMsg = addMessage("جاري المعالجة...", 'ai');
+        const model = document.getElementById('modelSelect').value;
+        
+        // تأثير الكتابة
+        setTimeout(() => {
+            aiMsg.querySelector('.text-content').innerText = `هذا رد تجريبي من نموذج ${model}. لربط الذكاء الحقيقي، تحتاج لإعداد سيرفر Ollama أو API Key.`;
+        }, 1500);
+    }
 </script>
 
 </body>
