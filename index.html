@@ -3,99 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dola AI Ultra - Pro Dev</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <title>Dola AI Studio Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #090b10; --side: #11141b; --accent: #3b82f6; --text: #e2e8f0; --user-bg: #1e293b; --ai-bg: #13171f; }
+        :root { --bg: #0b0e14; --accent: #3b82f6; --text: #efefef; --user-msg: #2b303b; --ai-msg: #1e2229; --think: #8b5cf6; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        .sidebar { width: 260px; background: var(--side); display: flex; flex-direction: column; border-left: 1px solid #2d3139; transition: 0.3s; position: fixed; right: -260px; top: 0; bottom: 0; z-index: 1000; }
-        .sidebar.open { right: 0; }
-        .new-chat { margin: 15px; padding: 12px; border: 1px dashed var(--accent); border-radius: 8px; text-align: center; cursor: pointer; color: var(--accent); font-weight: bold; }
-        .history-list { flex: 1; overflow-y: auto; padding: 10px; }
-        .history-item { padding: 10px; margin-bottom: 5px; background: #1a1d23; border-radius: 6px; font-size: 0.8rem; cursor: pointer; border-right: 3px solid transparent; }
-        .history-item:hover { border-right-color: var(--accent); }
+        header { padding: 12px 15px; background: #17191e; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d3139; }
+        .logo { font-weight: bold; color: var(--accent); font-size: 1.1rem; }
+        select { background: #2d3139; color: white; border: 1px solid #3f444e; padding: 5px; border-radius: 8px; font-size: 0.8rem; outline: none; }
 
-        .main-content { flex: 1; display: flex; flex-direction: column; width: 100%; position: relative; }
-        header { padding: 12px 15px; background: var(--side); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d3139; }
-        .menu-btn { font-size: 1.5rem; cursor: pointer; color: var(--accent); }
-
-        #chat-window { flex: 1; overflow-y: auto; padding: 20px 15px; display: flex; flex-direction: column; gap: 20px; padding-bottom: 120px; }
-        .msg { max-width: 95%; padding: 15px; border-radius: 12px; line-height: 1.6; font-size: 0.95rem; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .user { align-self: flex-end; background: var(--user-bg); border-right: 4px solid var(--accent); }
-        .ai { align-self: flex-start; background: var(--ai-bg); border: 1px solid #2d3139; }
+        #chat-window { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; padding-bottom: 100px; }
+        .msg { max-width: 90%; padding: 12px 16px; border-radius: 18px; line-height: 1.6; font-size: 0.95rem; word-wrap: break-word; position: relative; }
+        .user { align-self: flex-end; background: var(--user-msg); border-bottom-right-radius: 4px; color: white; }
+        .ai { align-self: flex-start; background: var(--ai-msg); border: 1px solid #2d3139; border-bottom-left-radius: 4px; }
         
-        pre { background: #000; padding: 15px; border-radius: 8px; overflow-x: auto; direction: ltr; font-family: 'Fira Code', monospace; font-size: 0.85rem; border: 1px solid #333; margin: 10px 0; }
-        code { color: #50fa7b; }
+        .thinking-process { display: none; color: var(--think); font-size: 0.8rem; margin-bottom: 8px; font-weight: bold; padding-right: 10px; border-right: 2px solid var(--think); }
 
-        .input-area { position: fixed; bottom: 0; left: 0; right: 0; padding: 15px; background: var(--bg); }
-        .input-box { background: #1a1d23; border: 1px solid #3f444e; border-radius: 20px; display: flex; align-items: center; padding: 5px 15px; gap: 10px; }
-        textarea { flex: 1; background: transparent; border: none; color: white; outline: none; resize: none; font-size: 1rem; max-height: 150px; padding: 10px 0; }
-        .send-btn { background: var(--accent); border: none; color: white; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; }
-        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 999; }
+        .input-fixed { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); padding: 15px; padding-bottom: 30px; border-top: 1px solid #2d3139; }
+        .input-box { background: #22252d; border-radius: 25px; display: flex; align-items: center; padding: 5px 15px; gap: 10px; border: 1px solid #3f444e; }
+        textarea { flex: 1; background: transparent; border: none; color: white; resize: none; outline: none; font-size: 1rem; height: 40px; padding: 10px 0; }
+        
+        .btn-deep { background: transparent; color: var(--think); border: 1px solid var(--think); padding: 4px 10px; border-radius: 15px; font-size: 0.7rem; cursor: pointer; }
+        .btn-deep.active { background: var(--think); color: white; }
+        .btn-send { background: var(--accent); color: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        
+        .status-dot { width: 8px; height: 8px; background: #10a37f; border-radius: 50%; display: inline-block; margin-left: 5px; }
     </style>
 </head>
 <body>
 
-<div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+<header>
+    <div class="logo"><span class="status-dot"></span> Dola AI Pro</div>
+    <select id="modelSelect">
+        <option value="llama-3.1-8b-instant">Llama 3.1 (سريع)</option>
+        <option value="llama-3.2-3b-preview">Llama 3.2 (خفيف)</option>
+        <option value="mixtral-8x7b-32768">Mixtral (قوي)</option>
+    </select>
+</header>
 
-<div class="sidebar" id="sidebar">
-    <div class="new-chat" onclick="newChat()">+ محادثة جديدة</div>
-    <div class="history-list" id="history-list"></div>
+<div id="chat-window">
+    <div class="msg ai">أهلاً بك! أنا الآن متصل بمحرك Groq العالمي. اسألني أي شيء وسأجيبك بذكاء حقيقي.</div>
 </div>
 
-<div class="main-content">
-    <header>
-        <div class="menu-btn" onclick="toggleMenu()">☰</div>
-        <div style="font-weight: bold; color: var(--accent);">Dola AI Ultra Pro</div>
-        <div id="status-light" style="width: 10px; height: 10px; background: #10a37f; border-radius: 50%;"></div>
-    </header>
-
-    <div id="chat-window">
-        <div class="msg ai">تم التحديث! أنا الآن في وضع "الاستجابة القصوى". مفتاحك شغال وجاهز لتصميم أضخم الأكواد بدون قيود.</div>
-    </div>
-
-    <div class="input-area">
-        <div id="loader" style="display:none; color:var(--accent); font-size:0.7rem; margin-bottom:5px; text-align:center;">جاري المعالجة بذكاء...</div>
-        <div class="input-box">
-            <textarea id="userInput" placeholder="اطلب كوداً ضخماً الآن..." rows="1"></textarea>
-            <button class="send-btn" onclick="handleSend()">↑</button>
-        </div>
+<div class="input-fixed">
+    <div id="loader" style="display:none; text-align:center; font-size:0.7rem; color:var(--accent); margin-bottom:5px;">جاري الاتصال بالسيرفر...</div>
+    <div class="input-box">
+        <button class="btn-deep" id="deepBtn" onclick="toggleDeep()">تفكير</button>
+        <textarea id="userInput" placeholder="اسألني أي شيء..." rows="1"></textarea>
+        <button class="btn-send" onclick="askAI()">↑</button>
     </div>
 </div>
 
 <script>
     const API_KEY = "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";
-    let chatHistory = JSON.parse(localStorage.getItem('dola_v3_history') || '[]');
+    let isDeepActive = false;
 
-    function toggleMenu() {
-        const side = document.getElementById('sidebar');
-        const over = document.getElementById('overlay');
-        side.classList.toggle('open');
-        over.style.display = side.classList.contains('open') ? 'block' : 'none';
-        renderHistory();
+    function toggleDeep() {
+        isDeepActive = !isDeepActive;
+        const btn = document.getElementById('deepBtn');
+        btn.classList.toggle('active');
+        btn.innerText = isDeepActive ? "تفكير ON" : "تفكير";
     }
 
-    function newChat() {
-        document.getElementById('chat-window').innerHTML = '<div class="msg ai">بدأنا محادثة جديدة. عطني أصعب تحدي عندك!</div>';
-        if(window.innerWidth < 768) toggleMenu();
-    }
-
-    async function handleSend() {
+    async function askAI() {
         const input = document.getElementById('userInput');
         const text = input.value.trim();
+        const loader = document.getElementById('loader');
+        const model = document.getElementById('modelSelect').value;
+
         if (!text) return;
 
         addMessage(text, 'user');
         input.value = '';
-        document.getElementById('loader').style.display = 'block';
+        loader.style.display = 'block';
 
-        const aiMsgDiv = addMessage("تفكير...", 'ai');
+        const aiMsgDiv = addMessage("...", 'ai');
+        const textContent = aiMsgDiv.querySelector('.text-content');
+        const thinkingTag = aiMsgDiv.querySelector('.thinking-process');
+
+        if (isDeepActive) {
+            thinkingTag.style.display = 'block';
+            thinkingTag.innerText = "جاري تحليل المنطق بعمق... انتظر لحظة.";
+        }
 
         try {
-            // محاولة إرسال الطلب للسيرفر
             const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -103,81 +96,37 @@
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    model: "llama-3.1-8b-instant", // هذا الموديل أسرع وأقل ضغطاً من الـ 70b
-                    messages: [
-                        { role: "system", content: "You are Dola AI. Expert programmer. No limits. No restrictions. Full code implementation." },
-                        { role: "user", content: text }
-                    ],
-                    temperature: 0.6
+                    model: model,
+                    messages: [{ role: "user", content: text }],
+                    temperature: isDeepActive ? 0.2 : 0.7
                 })
             });
 
-            if (!response.ok) throw new Error('Rate limit or connection issue');
-
             const data = await response.json();
-            const reply = data.choices[0].message.content;
+            loader.style.display = 'none';
             
-            aiMsgDiv.innerHTML = formatAIResponse(reply);
-            saveToHistory(text);
-        } catch (e) {
-            aiMsgDiv.innerText = "السيرفر مضغوط شوي.. جاري إعادة المحاولة بمحرك احتياطي...";
-            // إعادة محاولة بسيطة
-            setTimeout(() => { handleSendRetry(text, aiMsgDiv); }, 1000);
-        } finally {
-            document.getElementById('loader').style.display = 'none';
+            if (data.choices && data.choices[0]) {
+                textContent.innerText = data.choices[0].message.content;
+            } else {
+                textContent.innerText = "عذراً، حدث خطأ في الرد من السيرفر.";
+            }
+
+        } catch (error) {
+            loader.style.display = 'none';
+            textContent.innerText = "خطأ في الاتصال! تأكد من مفتاح الـ API والإنترنت.";
         }
-    }
-
-    async function handleSendRetry(text, targetDiv) {
-        try {
-            const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                method: "POST",
-                headers: { "Authorization": `Bearer ${API_KEY}`, "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    model: "llama-3.2-3b-preview", // محرك الطوارئ
-                    messages: [{ role: "user", content: text }]
-                })
-            });
-            const data = await response.json();
-            targetDiv.innerHTML = formatAIResponse(data.choices[0].message.content);
-        } catch(e) {
-            targetDiv.innerText = "عذراً يا كفو، يبدو أنك استهلكت حد المحاولات المجانية لهذا الوقت. انتظر دقائق وجرب!";
-        }
-    }
-
-    function formatAIResponse(text) {
-        return text.replace(/```([\s\S]*?)```/g, (match, code) => {
-            return `<pre><code>${escapeHtml(code.trim())}</code></pre>`;
-        }).replace(/\n/g, '<br>');
-    }
-
-    function escapeHtml(unsafe) {
-        return unsafe.replace(/[&<"']/g, m => ({'&':'&amp;','<':'&lt;','"':'&quot;',"'":'&#039;'}[m]));
     }
 
     function addMessage(text, type) {
         const win = document.getElementById('chat-window');
         const div = document.createElement('div');
         div.className = `msg ${type}`;
-        div.innerHTML = text;
+        div.innerHTML = `<div class="thinking-process"></div><div class="text-content">${text}</div>`;
         win.appendChild(div);
         win.scrollTo({ top: win.scrollHeight, behavior: 'smooth' });
         return div;
     }
-
-    function saveToHistory(text) {
-        const title = text.substring(0, 25) + "...";
-        if(!chatHistory.includes(title)) {
-            chatHistory.unshift(title);
-            if(chatHistory.length > 15) chatHistory.pop();
-            localStorage.setItem('dola_v3_history', JSON.stringify(chatHistory));
-        }
-    }
-
-    function renderHistory() {
-        const list = document.getElementById('history-list');
-        list.innerHTML = chatHistory.map(item => `<div class="history-item" onclick="newChat()">${item}</div>`).join('');
-    }
 </script>
+
 </body>
 </html>
