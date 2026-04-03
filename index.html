@@ -3,116 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Hub | Pro</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Dola AI Studio | DeepSeek Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #05070a; --side: #0f121a; --acc: #7c4dff; --msg-user: #222733; }
-        * { box-sizing: border-box; }
-        body { margin: 0; background: var(--bg); color: white; font-family: 'Inter', sans-serif; display: flex; height: 100vh; }
-        
-        /* Sidebar */
-        .sidebar { width: 260px; background: var(--side); display: flex; flex-direction: column; border-left: 1px solid #1e2330; transition: 0.3s; }
-        .new-chat { margin: 15px; padding: 12px; border: 1px dashed var(--acc); border-radius: 8px; text-align: center; cursor: pointer; transition: 0.3s; }
-        .new-chat:hover { background: var(--acc); }
-        .history { flex: 1; overflow-y: auto; padding: 10px; }
-        .hist-item { padding: 10px; margin-bottom: 5px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .hist-item:hover { background: #1e2330; }
-
-        /* Main Content */
-        .main { flex: 1; display: flex; flex-direction: column; position: relative; }
-        header { padding: 15px; background: rgba(5,7,10,0.8); backdrop-filter: blur(10px); border-bottom: 1px solid #1e2330; display: flex; justify-content: space-between; }
-        #chat-flow { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
-        
-        .msg { max-width: 85%; padding: 15px; border-radius: 15px; line-height: 1.6; font-size: 0.95rem; }
-        .msg.user { align-self: flex-end; background: var(--acc); border-bottom-left-radius: 2px; }
-        .msg.ai { align-self: flex-start; background: var(--msg-user); border: 1px solid #1e2330; border-bottom-right-radius: 2px; }
-
-        /* Input Area */
-        .input-container { padding: 20px; background: var(--bg); }
-        .input-wrapper { max-width: 800px; margin: auto; position: relative; }
-        input { width: 100%; padding: 16px; padding-left: 100px; background: #161b22; border: 1px solid #30363d; border-radius: 12px; color: white; outline: none; }
-        .input-btns { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); display: flex; gap: 5px; }
-        .ibtn { padding: 8px; border-radius: 6px; border: none; cursor: pointer; font-size: 0.8rem; }
-        
-        /* Mobile */
-        @media (max-width: 768px) {
-            .sidebar { position: fixed; right: -260px; height: 100%; z-index: 100; }
-            .sidebar.open { right: 0; }
+        :root {
+            --bg: #0d1117; --side: #161b22; --accent: #58a6ff; --text: #c9d1d9;
+            --deep-purple: #8957e5; --user-bg: #1f2937;
         }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        
+        /* Navbar */
+        nav { background: var(--side); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d; }
+        .logo { font-weight: bold; font-size: 1.5rem; color: var(--accent); }
+        select { background: #21262d; color: white; border: 1px solid #30363d; padding: 5px 10px; border-radius: 6px; }
+
+        /* Chat Area */
+        #chat-box { flex: 1; overflow-y: auto; padding: 20px 15%; display: flex; flex-direction: column; gap: 20px; }
+        .msg { padding: 15px; border-radius: 12px; line-height: 1.6; max-width: 85%; position: relative; }
+        .user { align-self: flex-end; background: var(--user-bg); border: 1px solid #30363d; }
+        .ai { align-self: flex-start; background: #161b22; border: 1px solid var(--accent); }
+        
+        .thinking { color: var(--deep-purple); font-size: 0.85rem; margin-bottom: 10px; display: none; font-style: italic; }
+        .status { font-size: 0.7rem; color: #8b949e; text-align: center; padding: 5px; }
+
+        /* Input Box */
+        .input-wrapper { padding: 20px 15%; background: var(--bg); }
+        .input-area { background: #21262d; border: 1px solid #30363d; border-radius: 12px; display: flex; padding: 10px; gap: 10px; align-items: center; }
+        textarea { flex: 1; background: transparent; border: none; color: white; outline: none; resize: none; font-family: inherit; font-size: 1rem; }
+        
+        .btn-deep { background: transparent; border: 1px solid var(--deep-purple); color: var(--deep-purple); padding: 4px 12px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; }
+        .btn-deep.active { background: var(--deep-purple); color: white; }
+        .btn-send { background: var(--accent); border: none; color: white; padding: 8px 15px; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="sidebar" id="sidebar">
-        <div class="new-chat" onclick="location.reload()"><i class="fas fa-plus"></i> محادثة جديدة</div>
-        <div class="history" id="history-list">
-            </div>
+
+<nav>
+    <div class="logo">Dola AI</div>
+    <select id="model-select">
+        <option value="DeepSeek-V3-GGUF">DeepSeek V3 (WebGPU)</option>
+        <option value="Llama-3-8B">Llama 3</option>
+    </select>
+</nav>
+
+<div id="status" class="status">جاهز للعمل..</div>
+
+<div id="chat-box">
+    <div class="msg ai">أهلاً بك! أنا ذكاؤك الاصطناعي الخاص على GitHub. اسألني أي شيء.</div>
+</div>
+
+<div class="input-wrapper">
+    <div class="input-area">
+        <button class="btn-deep" id="deep-btn" onclick="toggleDeep()">التفكير العميق: OFF</button>
+        <textarea id="user-input" rows="1" placeholder="اكتب سؤالك هنا..."></textarea>
+        <button class="btn-send" id="send-btn">إرسال</button>
     </div>
+</div>
 
-    <div class="main">
-        <header>
-            <i class="fas fa-bars" onclick="toggleSidebar()"></i>
-            <div style="font-weight: bold;">AI MULTIVERSE PRO</div>
-            <i></i>
-        </header>
+<script type="module">
+    // استخدام مكتبة WebLLM لتشغيل الموديل داخل المتصفح مباشرة
+    import * as webllm from "https://esm.run/@mlc-ai/web-llm";
 
-        <div id="chat-flow">
-            <div class="msg ai">أهلاً بك! أنا خبير البرمجة الخاص بك. كيف يمكنني مساعدتك في Python أو Lua اليوم؟</div>
-        </div>
+    let engine;
+    let isDeep = false;
+    const chatBox = document.getElementById('chat-box');
+    const status = document.getElementById('status');
 
-        <div class="input-container">
-            <div class="input-wrapper">
-                <input type="text" id="user-in" placeholder="اسألني أي شيء...">
-                <div class="input-btns">
-                    <button class="ibtn" style="background: #3d1b8c; color: white;" onclick="send('thinking')">تفكير</button>
-                    <button class="ibtn" style="background: white;" onclick="send('normal')"><i class="fas fa-paper-plane"></i></button>
-                </div>
-            </div>
-        </div>
-    </div>
+    // وظيفة التفكير العميق
+    window.toggleDeep = () => {
+        isDeep = !isDeep;
+        document.getElementById('deep-btn').classList.toggle('active');
+        document.getElementById('deep-btn').innerText = isDeep ? "التفكير العميق: ON" : "التفكير العميق: OFF";
+    };
 
-    <script>
-        let currentSession = null;
+    async function initAI() {
+        status.innerText = "جاري تحميل محرك الذكاء الاصطناعي (قد يستغرق وقتاً في المرة الأولى)...";
+        engine = await webllm.CreateMLCEngine(document.getElementById('model-select').value, {
+            initProgressCallback: (p) => status.innerText = `جاري التحميل: ${Math.round(p.progress * 100)}%`
+        });
+        status.innerText = "متصل وجاهز!";
+    }
 
-        async function loadHistory() {
-            const res = await fetch('/get_sessions');
-            const data = await res.json();
-            const list = document.getElementById('history-list');
-            list.innerHTML = data.map(s => `<div class="hist-item" onclick="selectSession(${s.id})"><i class="fas fa-comment"></i> ${s.title}</div>`).join('');
+    document.getElementById('send-btn').onclick = async () => {
+        const input = document.getElementById('user-input');
+        const prompt = input.value.trim();
+        if(!prompt) return;
+
+        if(!engine) await initAI();
+
+        // إضافة رسالة المستخدم
+        const userMsg = document.createElement('div');
+        userMsg.className = 'msg user';
+        userMsg.innerText = prompt;
+        chatBox.appendChild(userMsg);
+        input.value = '';
+
+        // إضافة رسالة الـ AI
+        const aiMsg = document.createElement('div');
+        aiMsg.className = 'msg ai';
+        aiMsg.innerHTML = `<div class="thinking" id="think-box">جاري تحليل الطلب بعمق...</div><div class="text"></div>`;
+        chatBox.appendChild(aiMsg);
+        
+        if(isDeep) aiMsg.querySelector('#think-box').style.display = 'block';
+
+        const chunks = await engine.chat.completions.create({
+            messages: [{ role: "user", content: prompt }],
+            stream: true
+        });
+
+        let reply = "";
+        for await (const chunk of chunks) {
+            const content = chunk.choices[0]?.delta?.content || "";
+            reply += content;
+            aiMsg.querySelector('.text').innerText = reply;
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
+    };
+</script>
 
-        async function send(mode) {
-            const input = document.getElementById('user-in');
-            const flow = document.getElementById('chat-flow');
-            if(!input.value) return;
-
-            const val = input.value;
-            flow.innerHTML += `<div class="msg user">${val}</div>`;
-            input.value = '';
-            flow.scrollTop = flow.scrollHeight;
-
-            const res = await fetch('/chat', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({message: val, mode: mode, session_id: currentSession})
-            });
-            const data = await res.json();
-            currentSession = data.session_id;
-            
-            let reply = data.reply.replace(/
-http://googleusercontent.com/immersive_entry_chip/0
-
----
-
-### كيف تجعله "شغالاً فوراً"؟
-
-بما أنك تريد API جاهز، إليك أسرع طريقة في العالم للحصول على واحد مجاني وآمن:
-1. اذهب لموقع **Groq Cloud** أو **OpenRouter**.
-2. سجل بجوجل (مجاني تماماً ويعطيك رصيداً ضخماً).
-3. انسخ المفتاح وضعه في الكود مكان `"ضع_مفتاحك_هنا"`.
-
-**لماذا هذا التصميم أفضل؟**
-* **ترتيب المحادثات:** الآن كل مرة تكتب فيها شيئاً جديداً، سيتم حفظها في القائمة الجانبية باسم المحادثة.
-* **الجمالية:** استخدمت نظام "الزجاج المطفي" (Glassmorphism) وألواناً مريحة للعين في الجوال.
-* **القوة:** الكود يدعم وضع التفكير العميق الذي طلبته برمجياً.
-
-هل تود أن أشرح لك كيف تربطه بـ **Discord** لكي ترسل النتائج مباشرة هناك؟
+</body>
+</html>
