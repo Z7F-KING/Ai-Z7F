@@ -1,229 +1,186 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI V4 PRO</title>
-
-<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-
-<style>
-body{
-  margin:0;
-  font-family:system-ui;
-  background:#070812;
-  color:white;
-  display:flex;
-  height:100vh;
-}
-
-/* SIDEBAR */
-.sidebar{
-  width:280px;
-  position:fixed;
-  left:0;
-  top:0;
-  bottom:0;
-  background:rgba(255,255,255,0.05);
-  backdrop-filter:blur(20px);
-  border-right:1px solid rgba(255,255,255,0.08);
-  padding:16px;
-  transition:.3s;
-}
-
-.sidebar.hide{transform:translateX(-100%);}
-
-.btn,select{
-  width:100%;
-  padding:12px;
-  margin-top:10px;
-  border:none;
-  border-radius:12px;
-  background:#15162a;
-  color:white;
-}
-
-/* CHAT */
-.chat{
-  margin-left:280px;
-  flex:1;
-  display:flex;
-  flex-direction:column;
-}
-
-.chat.full{margin-left:0;}
-
-.top{
-  padding:12px;
-  display:flex;
-  gap:10px;
-  align-items:center;
-  border-bottom:1px solid rgba(255,255,255,0.08);
-}
-
-.menu{
-  width:40px;height:40px;
-  border-radius:10px;
-  border:none;
-  background:#15162a;
-  color:white;
-}
-
-/* messages */
-.msgs{
-  flex:1;
-  overflow-y:auto;
-  padding:15px;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-
-.msg{
-  padding:12px;
-  border-radius:12px;
-  max-width:75%;
-  white-space:pre-wrap;
-}
-
-.user{
-  background:linear-gradient(135deg,#6b5cff,#8a7dff);
-  align-self:flex-end;
-}
-
-.bot{
-  background:#15162a;
-  border:1px solid rgba(255,255,255,0.08);
-}
-
-/* input */
-.input{
-  display:flex;
-  padding:12px;
-  gap:10px;
-  border-top:1px solid rgba(255,255,255,0.08);
-}
-
-input{
-  flex:1;
-  padding:14px;
-  border-radius:12px;
-  border:none;
-  background:#111224;
-  color:white;
-}
-
-.send{
-  width:50px;
-  border:none;
-  border-radius:12px;
-  background:#7c5cff;
-  color:white;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Studio - Dola Style</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #0d0d0d;
+            color: #e5e5e5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .glass-sidebar {
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(10px);
+            border-left: 1px solid #333;
+        }
+        .chat-container {
+            height: calc(100vh - 160px);
+            scrollbar-width: thin;
+            scrollbar-color: #333 transparent;
+        }
+        .message-user {
+            background: #252525;
+            border-radius: 15px 15px 0 15px;
+        }
+        .message-ai {
+            background: transparent;
+            border: 1px solid #333;
+            border-radius: 15px 15px 15px 0;
+        }
+        .input-area {
+            background: #1a1a1a;
+            border: 1px solid #444;
+            transition: border-color 0.3s;
+        }
+        .input-area:focus-within {
+            border-color: #6366f1;
+        }
+        .thinking-mode {
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+            border: 1px solid #6366f1 !important;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+        .loading-dots span {
+            animation: pulse 1.5s infinite;
+        }
+    </style>
 </head>
+<body class="flex h-screen">
 
-<body>
+    <!-- القائمة الجانبية -->
+    <aside class="w-64 glass-sidebar p-4 hidden md:flex flex-col">
+        <div class="text-xl font-bold mb-8 text-white flex items-center gap-2">
+            <i class="fas fa-robot text-indigo-500"></i> AI Studio
+        </div>
+        <button class="mb-4 w-full py-2 px-4 border border-dashed border-gray-600 rounded-lg hover:bg-gray-800 transition">
+            + محادثة جديدة
+        </button>
+        <div class="flex-grow overflow-y-auto space-y-2 text-sm text-gray-400">
+            <p class="px-2 pb-2 text-xs uppercase font-semibold">المحادثات الأخيرة</p>
+            <div class="p-2 hover:bg-gray-800 rounded cursor-pointer">تصميم موقع احترافي</div>
+            <div class="p-2 hover:bg-gray-800 rounded cursor-pointer">تجربة نماذج Groq</div>
+        </div>
+    </aside>
 
-<div class="sidebar" id="sidebar">
-  <h3>⚡ AI V4 PRO</h3>
+    <!-- المنطقة الرئيسية -->
+    <main class="flex-grow flex flex-col relative">
+        <!-- الهيدر: اختيار النموذج -->
+        <header class="p-4 border-b border-gray-800 flex justify-between items-center">
+            <select id="modelSelect" class="bg-gray-900 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 ring-indigo-500">
+                <option value="llama-3.3-70b-versatile">DeepSec (Llama 3.3 70B)</option>
+                <option value="llama-3.1-8b-instant">ChatGPT Style (Llama 8B)</option>
+                <option value="mixtral-8x7b-32768">Claude Style (Mixtral 8x7b)</option>
+                <option value="gemma2-9b-it">Gemini Style (Gemma 2)</option>
+            </select>
 
-  <select id="model">
-    <option value="openai/gpt-4o-mini">ChatGPT</option>
-    <option value="anthropic/claude-3-haiku">Claude</option>
-    <option value="google/gemini-pro">Gemini</option>
-    <option value="meta-llama/llama-3.1-8b-instruct">LLaMA</option>
-  </select>
+            <button id="thinkBtn" onclick="toggleThinking()" class="text-xs px-4 py-2 rounded-full border border-gray-700 hover:bg-gray-800 transition">
+                <i class="fas fa-brain ml-1"></i> التفكير العميق: <span id="thinkStatus">مغلق</span>
+            </button>
+        </header>
 
-  <button class="btn" onclick="deep=!deep">🧠 Deep Mode</button>
-  <button class="btn" onclick="clearChat()">🗑️ Clear</button>
-</div>
+        <!-- منطقة الرسائل -->
+        <div id="chatBox" class="chat-container overflow-y-auto p-4 md:p-8 space-y-6">
+            <div class="message-ai p-4 max-w-3xl mx-auto">
+                مرحباً بك! أنا مساعدك الذكي. يمكنك اختياره النموذج الذي تفضله وتفعيل خاصية "التفكير العميق" للتحليل المعقد. كيف يمكنني مساعدتك اليوم؟
+            </div>
+        </div>
 
-<div class="chat" id="chat">
+        <!-- منطقة الإدخال -->
+        <div class="p-4 bg-transparent absolute bottom-0 w-full">
+            <div class="max-w-3xl mx-auto input-area rounded-2xl p-2 flex items-end gap-2 shadow-2xl">
+                <textarea id="userInput" rows="1" class="w-full bg-transparent p-2 outline-none resize-none max-h-40" placeholder="اسأل أي شيء..."></textarea>
+                <button onclick="sendMessage()" class="bg-indigo-600 hover:bg-indigo-500 p-3 rounded-xl transition text-white">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            <p class="text-center text-[10px] text-gray-500 mt-2">Powered by Groq API • Designed by Dola</p>
+        </div>
+    </main>
 
-<div class="top">
-  <button class="menu" onclick="toggle()"><i class="ri-menu-line"></i></button>
-  <div>AI V4 PRO</div>
-</div>
+    <script>
+        const API_KEY = "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";
+        let isThinking = false;
 
-<div class="msgs" id="msgs"></div>
+        function toggleThinking() {
+            isThinking = !isThinking;
+            const btn = document.getElementById('thinkBtn');
+            const status = document.getElementById('thinkStatus');
+            if(isThinking) {
+                btn.classList.add('thinking-mode');
+                status.innerText = "مفعل";
+            } else {
+                btn.classList.remove('thinking-mode');
+                status.innerText = "مغلق";
+            }
+        }
 
-<div class="input">
-  <input id="input" placeholder="اكتب...">
-  <button class="send" onclick="send()"><i class="ri-send-plane-fill"></i></button>
-</div>
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const chatBox = document.getElementById('chatBox');
+            const model = document.getElementById('modelSelect').value;
+            const message = input.value.trim();
 
-</div>
+            if (!message) return;
 
-<script>
+            // إضافة رسالة المستخدم
+            appendMessage('user', message);
+            input.value = '';
+            
+            // إضافة "جاري التفكير"
+            const loadingId = 'loading-' + Date.now();
+            appendMessage('ai', `<span class="loading-dots">جاري المعالجة<span>.</span><span>.</span><span>.</span></span>`, loadingId);
 
-const API_KEY = "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"; // 👈 هنا تحط مفتاحك
-let deep=false;
+            try {
+                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${API_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [
+                            { 
+                                role: "system", 
+                                content: isThinking ? "أجب بتفصيل شديد وقم بتحليل السؤال بعمق كأنك مفكر استراتيجي." : "أجب باختصار وذكاء."
+                            },
+                            { role: "user", content: message }
+                        ]
+                    })
+                });
 
-function toggle(){
-  document.getElementById("sidebar").classList.toggle("hide");
-  document.getElementById("chat").classList.toggle("full");
-}
+                const data = await response.json();
+                const aiResponse = data.choices[0].message.content;
+                
+                document.getElementById(loadingId).innerText = aiResponse;
+            } catch (error) {
+                document.getElementById(loadingId).innerText = "خطأ: تأكد من اتصال الإنترنت أو صلاحية الـ API.";
+            }
+        }
 
-function add(t,c){
-  const d=document.createElement("div");
-  d.className="msg "+c;
-  d.innerText=t;
-  document.getElementById("msgs").appendChild(d);
-  d.scrollIntoView({behavior:"smooth"});
-}
+        function appendMessage(role, text, id = '') {
+            const chatBox = document.getElementById('chatBox');
+            const div = document.createElement('div');
+            div.className = `p-4 max-w-3xl mx-auto ${role === 'user' ? 'message-user self-end' : 'message-ai'}`;
+            if(id) div.id = id;
+            div.innerHTML = text;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
 
-function clearChat(){
-  document.getElementById("msgs").innerHTML="";
-}
-
-async function send(){
-  const input=document.getElementById("input");
-  const msg=input.value;
-  const model=document.getElementById("model").value;
-
-  if(!msg) return;
-
-  add(msg,"user");
-  input.value="";
-
-  const bot=document.createElement("div");
-  bot.className="msg bot";
-  bot.innerText="...";
-  document.getElementById("msgs").appendChild(bot);
-
-  try{
-    const res=await fetch("https://openrouter.ai/api/v1/chat/completions",{
-      method:"POST",
-      headers:{
-        "Authorization":"Bearer "+API_KEY,
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({
-        model,
-        messages:[
-          {
-            role:"system",
-            content: deep
-              ? "أجب بتحليل عميق ومنظم"
-              : "أجب بشكل واضح ومختصر"
-          },
-          {role:"user",content:msg}
-        ]
-      })
-    });
-
-    const data=await res.json();
-
-    bot.innerText =
-      data?.choices?.[0]?.message?.content ||
-      "خطأ: تأكد من API أو الموديل";
-
-  }catch(e){
-    bot.innerText="خطأ اتصال";
-  }
-}
-</script>
-
+        // تحسين التوسيع التلقائي للتكست أريا
+        document.getElementById('userInput').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    </script>
 </body>
 </html>
