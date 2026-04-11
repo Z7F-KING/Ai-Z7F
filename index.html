@@ -3,140 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Studio - Dola Style</title>
+    <title>Dola Elite AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary: #8b5cf6;
+            --bg-dark: #050505;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
         body {
-            background-color: #0d0d0d;
-            color: #e5e5e5;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-dark);
+            color: #fff;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
         }
-        .glass-sidebar {
-            background: rgba(20, 20, 20, 0.8);
-            backdrop-filter: blur(10px);
-            border-left: 1px solid #333;
+
+        /* خلفية متحركة خفيفة */
+        .bg-glow {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, #1a1033 0%, #050505 100%);
+            z-index: -1;
         }
-        .chat-container {
-            height: calc(100vh - 160px);
-            scrollbar-width: thin;
-            scrollbar-color: #333 transparent;
+
+        /* تأثير الزجاج */
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
         }
-        .message-user {
-            background: #252525;
-            border-radius: 15px 15px 0 15px;
+
+        /* منطقة الرسائل */
+        #chatBox {
+            height: calc(100vh - 180px);
+            scrollbar-width: none;
         }
-        .message-ai {
-            background: transparent;
-            border: 1px solid #333;
-            border-radius: 15px 15px 15px 0;
+        #chatBox::-webkit-scrollbar { display: none; }
+
+        .msg-bubble {
+            max-width: 85%;
+            padding: 1rem 1.5rem;
+            border-radius: 20px;
+            margin-bottom: 1.5rem;
+            animation: fadeIn 0.4s ease;
         }
-        .input-area {
-            background: #1a1a1a;
-            border: 1px solid #444;
-            transition: border-color 0.3s;
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .input-area:focus-within {
-            border-color: #6366f1;
+
+        /* زر العقل (التفكير العميق) */
+        .brain-btn {
+            font-size: 1.4rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: #666;
         }
-        .thinking-mode {
-            box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
-            border: 1px solid #6366f1 !important;
+        .brain-active {
+            color: var(--primary);
+            text-shadow: 0 0 15px var(--primary);
+            transform: scale(1.2) rotate(10deg);
         }
-        @keyframes pulse {
-            0% { opacity: 0.5; }
-            50% { opacity: 1; }
-            100% { opacity: 0.5; }
+
+        /* زر الإرسال */
+        .send-btn {
+            background: linear-gradient(135deg, #8b5cf6, #d946ef);
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
         }
-        .loading-dots span {
-            animation: pulse 1.5s infinite;
+
+        /* القائمة السفلية للجوال والصفحات */
+        .nav-bar {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 25px;
+            width: fit-content;
+            padding: 10px 25px;
+            display: flex;
+            gap: 30px;
+            z-index: 100;
         }
+
+        .nav-item {
+            font-size: 1.2rem;
+            color: #555;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .nav-item.active { color: var(--primary); }
+
+        /* لودينج */
+        .typing-dot {
+            width: 6px; height: 6px; background: #888; border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
     </style>
 </head>
-<body class="flex h-screen">
+<body>
 
-    <!-- القائمة الجانبية -->
-    <aside class="w-64 glass-sidebar p-4 hidden md:flex flex-col">
-        <div class="text-xl font-bold mb-8 text-white flex items-center gap-2">
-            <i class="fas fa-robot text-indigo-500"></i> AI Studio
-        </div>
-        <button class="mb-4 w-full py-2 px-4 border border-dashed border-gray-600 rounded-lg hover:bg-gray-800 transition">
-            + محادثة جديدة
-        </button>
-        <div class="flex-grow overflow-y-auto space-y-2 text-sm text-gray-400">
-            <p class="px-2 pb-2 text-xs uppercase font-semibold">المحادثات الأخيرة</p>
-            <div class="p-2 hover:bg-gray-800 rounded cursor-pointer">تصميم موقع احترافي</div>
-            <div class="p-2 hover:bg-gray-800 rounded cursor-pointer">تجربة نماذج Groq</div>
-        </div>
-    </aside>
+    <div class="bg-glow"></div>
 
-    <!-- المنطقة الرئيسية -->
-    <main class="flex-grow flex flex-col relative">
-        <!-- الهيدر: اختيار النموذج -->
-        <header class="p-4 border-b border-gray-800 flex justify-between items-center">
-            <select id="modelSelect" class="bg-gray-900 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 ring-indigo-500">
-                <option value="llama-3.3-70b-versatile">DeepSec (Llama 3.3 70B)</option>
-                <option value="llama-3.1-8b-instant">ChatGPT Style (Llama 8B)</option>
-                <option value="mixtral-8x7b-32768">Claude Style (Mixtral 8x7b)</option>
-                <option value="gemma2-9b-it">Gemini Style (Gemma 2)</option>
+    <!-- الهيدر (أيقونات فقط) -->
+    <header class="p-5 flex justify-between items-center max-w-5xl mx-auto">
+        <div class="text-2xl font-black tracking-tighter text-indigo-500"><i class="fas fa-bolt"></i> DOLA</div>
+        <div class="flex gap-4">
+            <select id="modelSelect" class="bg-transparent text-xs border-none text-gray-400 outline-none cursor-pointer">
+                <option value="llama-3.3-70b-versatile">DeepSec (High)</option>
+                <option value="mixtral-8x7b-32768">Balanced</option>
+                <option value="gemma2-9b-it">Fast</option>
             </select>
+            <i class="fas fa-history text-gray-500 cursor-pointer hover:text-white"></i>
+            <i class="fas fa-cog text-gray-500 cursor-pointer hover:text-white"></i>
+        </div>
+    </header>
 
-            <button id="thinkBtn" onclick="toggleThinking()" class="text-xs px-4 py-2 rounded-full border border-gray-700 hover:bg-gray-800 transition">
-                <i class="fas fa-brain ml-1"></i> التفكير العميق: <span id="thinkStatus">مغلق</span>
-            </button>
-        </header>
-
-        <!-- منطقة الرسائل -->
-        <div id="chatBox" class="chat-container overflow-y-auto p-4 md:p-8 space-y-6">
-            <div class="message-ai p-4 max-w-3xl mx-auto">
-                مرحباً بك! أنا مساعدك الذكي. يمكنك اختياره النموذج الذي تفضله وتفعيل خاصية "التفكير العميق" للتحليل المعقد. كيف يمكنني مساعدتك اليوم؟
+    <!-- منطقة المحتوى (صفحة الشات) -->
+    <section id="chatPage" class="max-w-4xl mx-auto px-4">
+        <div id="chatBox" class="overflow-y-auto pt-4">
+            <!-- رسالة ترحيب -->
+            <div class="msg-bubble glass-card mx-auto text-center border-none" style="background: transparent;">
+                <i class="fas fa-sparkles text-indigo-400 mb-2 text-2xl"></i>
+                <p class="text-gray-400 text-sm">أنا Dola.. اطلب ما تشاء وسأحوله لواقع</p>
             </div>
         </div>
 
-        <!-- منطقة الإدخال -->
-        <div class="p-4 bg-transparent absolute bottom-0 w-full">
-            <div class="max-w-3xl mx-auto input-area rounded-2xl p-2 flex items-end gap-2 shadow-2xl">
-                <textarea id="userInput" rows="1" class="w-full bg-transparent p-2 outline-none resize-none max-h-40" placeholder="اسأل أي شيء..."></textarea>
-                <button onclick="sendMessage()" class="bg-indigo-600 hover:bg-indigo-500 p-3 rounded-xl transition text-white">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
+        <!-- بار الإدخال العظيم -->
+        <div class="fixed bottom-24 left-0 right-0 px-4">
+            <div class="max-w-3xl mx-auto glass-card p-2 flex items-center gap-3 border-gray-800 shadow-2xl">
+                <button title="إرفاق ملف" class="p-3 text-gray-500 hover:text-white transition"><i class="fas fa-plus"></i></button>
+                
+                <textarea id="userInput" rows="1" class="flex-grow bg-transparent p-2 outline-none resize-none text-sm" placeholder="أدخل عبقريتك هنا..."></textarea>
+                
+                <div class="flex items-center gap-4 px-2">
+                    <!-- أيقونة العقل (تفكير عميق) -->
+                    <button id="thinkBtn" onclick="toggleThinking()" title="تفكير عميق" class="brain-btn">
+                        <i class="fas fa-brain"></i>
+                    </button>
+                    
+                    <!-- زر الإرسال -->
+                    <button onclick="sendMessage()" class="send-btn w-10 h-10 rounded-full flex items-center justify-center transition active:scale-90">
+                        <i class="fas fa-arrow-up text-white"></i>
+                    </button>
+                </div>
             </div>
-            <p class="text-center text-[10px] text-gray-500 mt-2">Powered by Groq API • Designed by Dola</p>
         </div>
-    </main>
+    </section>
+
+    <!-- شريط الصفحات السفلي -->
+    <nav class="nav-bar glass-card">
+        <div onclick="switchPage('chat')" class="nav-item active"><i class="fas fa-comment-dots"></i></div>
+        <div onclick="switchPage('discover')" class="nav-item"><i class="fas fa-compass"></i></div>
+        <div onclick="switchPage('library')" class="nav-item"><i class="fas fa-layer-group"></i></div>
+        <div onclick="switchPage('user')" class="nav-item"><i class="fas fa-user-astronaut"></i></div>
+    </nav>
 
     <script>
-        const API_KEY = "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";
+        const API_KEY = "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";
         let isThinking = false;
 
         function toggleThinking() {
             isThinking = !isThinking;
-            const btn = document.getElementById('thinkBtn');
-            const status = document.getElementById('thinkStatus');
-            if(isThinking) {
-                btn.classList.add('thinking-mode');
-                status.innerText = "مفعل";
-            } else {
-                btn.classList.remove('thinking-mode');
-                status.innerText = "مغلق";
-            }
+            document.getElementById('thinkBtn').classList.toggle('brain-active');
+            // تأثير اهتزاز خفيف عند التفعيل
+            navigator.vibrate?.(50);
         }
 
         async function sendMessage() {
             const input = document.getElementById('userInput');
-            const chatBox = document.getElementById('chatBox');
-            const model = document.getElementById('modelSelect').value;
             const message = input.value.trim();
-
             if (!message) return;
 
-            // إضافة رسالة المستخدم
             appendMessage('user', message);
             input.value = '';
-            
-            // إضافة "جاري التفكير"
-            const loadingId = 'loading-' + Date.now();
-            appendMessage('ai', `<span class="loading-dots">جاري المعالجة<span>.</span><span>.</span><span>.</span></span>`, loadingId);
+            input.style.height = 'auto';
+
+            const loadingId = 'ai-' + Date.now();
+            appendMessage('ai', `<div class="flex gap-1 py-2"><div class="typing-dot"></div><div class="typing-dot" style="animation-delay:0.2s"></div><div class="typing-dot" style="animation-delay:0.4s"></div></div>`, loadingId);
 
             try {
                 const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -146,40 +193,44 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        model: model,
+                        model: document.getElementById('modelSelect').value,
                         messages: [
-                            { 
-                                role: "system", 
-                                content: isThinking ? "أجب بتفصيل شديد وقم بتحليل السؤال بعمق كأنك مفكر استراتيجي." : "أجب باختصار وذكاء."
-                            },
+                            { role: "system", content: isThinking ? "أنت ذكاء اصطناعي فائق، فكر بعمق شديد، قدم تحليلات فلسفية وتقنية دقيقة جداً." : "أنت مساعد ذكي وسريع." },
                             { role: "user", content: message }
-                        ]
+                        ],
+                        temperature: isThinking ? 0.2 : 0.7 // تقليل العشوائية عند التفكير العميق
                     })
                 });
 
                 const data = await response.json();
-                const aiResponse = data.choices[0].message.content;
-                
-                document.getElementById(loadingId).innerText = aiResponse;
+                const content = data.choices[0].message.content;
+                document.getElementById(loadingId).innerHTML = `<div class="prose prose-invert text-sm leading-relaxed">${content.replace(/\n/g, '<br>')}</div>`;
             } catch (error) {
-                document.getElementById(loadingId).innerText = "خطأ: تأكد من اتصال الإنترنت أو صلاحية الـ API.";
+                document.getElementById(loadingId).innerText = "حدث خطأ في الاتصال.. تأكد من الـ API";
             }
         }
 
         function appendMessage(role, text, id = '') {
             const chatBox = document.getElementById('chatBox');
             const div = document.createElement('div');
-            div.className = `p-4 max-w-3xl mx-auto ${role === 'user' ? 'message-user self-end' : 'message-ai'}`;
+            div.className = `msg-bubble ${role === 'user' ? 'bg-[#1a1a1a] ml-auto' : 'glass-card mr-auto border-none'}`;
             if(id) div.id = id;
             div.innerHTML = text;
             chatBox.appendChild(div);
-            chatBox.scrollTop = chatBox.scrollHeight;
+            chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
         }
 
-        // تحسين التوسيع التلقائي للتكست أريا
+        function switchPage(page) {
+            // تأثير بصري بسيط للتبديل
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            console.log("Switched to page: " + page);
+        }
+
+        // تحسين الكتابة
         document.getElementById('userInput').addEventListener('input', function() {
             this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
+            this.style.height = Math.min(this.scrollHeight, 150) + 'px';
         });
     </script>
 </body>
