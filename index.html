@@ -3,175 +3,249 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Pro Chat</title>
+<title>AI Ultra Chat</title>
+
+<!-- ICONS -->
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 
 <style>
-* {margin:0;padding:0;box-sizing:border-box;font-family:sans-serif;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
 
-body {
+body{
   display:flex;
   height:100vh;
-  background:#0b0b0f;
+  background:linear-gradient(135deg,#0a0a0f,#0f0f18);
   color:white;
 }
 
 /* SIDEBAR */
-.sidebar {
+.sidebar{
   width:260px;
-  background:#111118;
+  background:rgba(20,20,30,0.7);
+  backdrop-filter:blur(20px);
   padding:20px;
-  border-right:1px solid #222;
+  border-right:1px solid rgba(255,255,255,0.05);
+  display:flex;
+  flex-direction:column;
 }
 
-.sidebar h2 {
+.logo{
+  font-size:20px;
   margin-bottom:20px;
+  opacity:.8;
 }
 
-select, button {
-  width:100%;
+.select, .btn{
   margin-bottom:15px;
   padding:12px;
-  background:#1a1a24;
+  border-radius:10px;
   border:none;
+  background:#1a1a25;
   color:white;
-  border-radius:8px;
+  width:100%;
+  cursor:pointer;
+  transition:.2s;
 }
 
-button:hover {
+.select:hover, .btn:hover{
   background:#2a2a3a;
 }
 
 /* CHAT */
-.chat {
+.chat{
   flex:1;
   display:flex;
   flex-direction:column;
 }
 
-.messages {
+.messages{
   flex:1;
   padding:20px;
   overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
 }
 
-.msg {
-  margin-bottom:15px;
-  padding:12px;
-  border-radius:10px;
-  max-width:70%;
+.msg{
+  padding:14px;
+  border-radius:14px;
+  max-width:75%;
+  animation:fade .3s ease;
 }
 
-.user {
-  background:#2a2a3f;
+.user{
+  background:linear-gradient(135deg,#4a4aff,#6a6aff);
   align-self:flex-end;
 }
 
-.bot {
+.bot{
   background:#1c1c2b;
 }
 
-.input-box {
-  display:flex;
-  border-top:1px solid #222;
+@keyframes fade{
+  from{opacity:0;transform:translateY(10px);}
+  to{opacity:1;transform:translateY(0);}
 }
 
-.input-box input {
+/* INPUT */
+.input-box{
+  display:flex;
+  padding:15px;
+  gap:10px;
+  border-top:1px solid rgba(255,255,255,0.05);
+}
+
+.input-box input{
   flex:1;
   padding:15px;
-  background:#111;
+  border-radius:12px;
   border:none;
+  background:#111;
   color:white;
 }
 
-.input-box button {
-  width:120px;
+.icon-btn{
+  width:50px;
+  height:50px;
+  border:none;
+  border-radius:12px;
+  background:#1a1a25;
+  color:white;
+  cursor:pointer;
+  font-size:20px;
+  transition:.2s;
+}
+
+.icon-btn:hover{
+  background:#2a2a3a;
+  transform:scale(1.05);
+}
+
+/* MOBILE */
+@media(max-width:800px){
+  .sidebar{
+    position:absolute;
+    left:-260px;
+    height:100%;
+    z-index:10;
+    transition:.3s;
+  }
+
+  .sidebar.active{
+    left:0;
+  }
+
+  .menu-btn{
+    position:absolute;
+    top:15px;
+    left:15px;
+    z-index:20;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<div class="sidebar">
-  <h2>🤖 AI Panel</h2>
+<!-- MENU BUTTON -->
+<button class="icon-btn menu-btn" onclick="toggleMenu()">
+  <i class="ri-menu-line"></i>
+</button>
 
-  <select id="model">
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <div class="logo">AI Ultra</div>
+
+  <select id="model" class="select">
     <option value="openai/gpt-4o-mini">ChatGPT</option>
     <option value="google/gemini-pro">Gemini</option>
     <option value="anthropic/claude-3-haiku">Claude</option>
-    <option value="meta-llama/llama-3-70b-instruct">LLaMA 3</option>
-    <option value="mistralai/mixtral-8x7b">Mixtral</option>
+    <option value="meta-llama/llama-3-70b-instruct">LLaMA</option>
   </select>
 
-  <button onclick="toggleDeep()">🧠 Deep Thinking</button>
-  <button onclick="clearChat()">🗑️ مسح المحادثة</button>
+  <button class="btn" onclick="toggleDeep()">
+    <i class="ri-brain-line"></i> Deep Mode
+  </button>
+
+  <button class="btn" onclick="clearChat()">
+    <i class="ri-delete-bin-line"></i> مسح
+  </button>
 </div>
 
+<!-- CHAT -->
 <div class="chat">
   <div class="messages" id="messages"></div>
 
   <div class="input-box">
-    <input id="input" placeholder="اكتب رسالتك...">
-    <button onclick="send()">إرسال</button>
+    <input id="input" placeholder="اكتب رسالة...">
+    <button class="icon-btn" onclick="send()">
+      <i class="ri-send-plane-fill"></i>
+    </button>
   </div>
 </div>
 
 <script>
-let deepMode = false;
-const API_KEY = "PUT_YOUR_OPENROUTER_KEY_HERE";
+let deep=false;
+let API_KEY="PUT_KEY";
+
+function toggleMenu(){
+  document.getElementById("sidebar").classList.toggle("active");
+}
 
 function toggleDeep(){
-  deepMode = !deepMode;
-  alert("Deep Mode: " + (deepMode ? "ON" : "OFF"));
+  deep=!deep;
+  alert("Deep Mode: "+(deep?"ON":"OFF"));
 }
 
 function clearChat(){
   document.getElementById("messages").innerHTML="";
 }
 
-function addMsg(text, cls){
-  const div = document.createElement("div");
-  div.className = "msg " + cls;
-  div.innerText = text;
+function addMsg(text,type){
+  const div=document.createElement("div");
+  div.className="msg "+type;
+  div.innerText=text;
   document.getElementById("messages").appendChild(div);
 }
 
 async function send(){
-  const input = document.getElementById("input");
-  const msg = input.value;
-  const model = document.getElementById("model").value;
+  const input=document.getElementById("input");
+  const msg=input.value;
+  const model=document.getElementById("model").value;
 
   if(!msg) return;
 
-  addMsg(msg, "user");
+  addMsg(msg,"user");
   input.value="";
 
-  addMsg("⏳ جاري التفكير...", "bot");
+  addMsg("Typing...","bot");
 
-  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+  const res=await fetch("https://openrouter.ai/api/v1/chat/completions",{
     method:"POST",
     headers:{
-      "Authorization":"Bearer " + API_KEY,
+      "Authorization":"Bearer "+API_KEY,
       "Content-Type":"application/json"
     },
-    body: JSON.stringify({
-      model: model,
-      messages: [
+    body:JSON.stringify({
+      model:model,
+      messages:[
         {
           role:"system",
-          content: deepMode
-            ? "حلل بعمق واعطِ اجابة مفصلة جدًا"
-            : "اجابة مختصرة"
+          content:deep
+          ? "اعطِ تحليل عميق جداً"
+          : "اجابة قصيرة"
         },
-        {role:"user", content: msg}
+        {role:"user",content:msg}
       ]
     })
   });
 
-  const data = await res.json();
+  const data=await res.json();
 
   document.querySelector(".messages").lastChild.remove();
 
-  addMsg(data.choices?.[0]?.message?.content || "خطأ", "bot");
+  addMsg(data.choices?.[0]?.message?.content || "Error","bot");
 }
 </script>
 
