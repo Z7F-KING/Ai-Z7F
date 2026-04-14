@@ -4,12 +4,14 @@ import requests
 import threading
 import os
 import sys
+import time
 
-# ألوان احترافية
+# ألوان التصميم
 G = '\033[1;32m' # أخضر
 W = '\033[1;37m' # أبيض
 C = '\033[1;36m' # سماوي
 Y = '\033[1;33m' # أصفر
+R = '\033[1;31m' # أحمر
 
 def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -17,15 +19,17 @@ def clear():
 def logo():
     print(f"""
 {C}══════════════════════════════════════
-{Y}     ULTRA USER GEN & CHECKER
+{Y}     PREMIUM MULTI-CHECKER V3
 {C}══════════════════════════════════════
-{W}  1 - TikTok    {W}  2 - Instagram
-{W}  3 - Telegram  {W}  4 - Roblox
+{W}  1 - TikTok     {W}  2 - Instagram
+{W}  3 - Telegram   {W}  4 - Roblox
+{W}  5 - Discord    {W}  6 - YouTube
 {C}══════════════════════════════════════{W}""")
 
 class Checker:
-    def __init__(self):
+    def __init__(self, delay):
         self.total_checked = 0
+        self.delay = delay
 
     def generate_user(self, length):
         chars = string.ascii_lowercase + string.digits
@@ -34,17 +38,25 @@ class Checker:
     def check_platform(self, platform, user):
         try:
             if platform == "1": # TikTok
-                r = requests.get(f"https://www.tiktok.com/@{user}", headers={"User-Agent": "Mozilla/5.0"})
+                r = requests.get(f"https://www.tiktok.com/@{user}", timeout=5)
                 return r.status_code == 404
             elif platform == "2": # Instagram
-                r = requests.get(f"https://www.instagram.com/{user}/")
+                r = requests.get(f"https://www.instagram.com/{user}/", timeout=5)
                 return r.status_code == 404
             elif platform == "3": # Telegram
-                r = requests.get(f"https://t.me/{user}")
+                r = requests.get(f"https://t.me/{user}", timeout=5)
                 return "tgme_page_extra" not in r.text and r.status_code == 200
             elif platform == "4": # Roblox
-                r = requests.get(f"https://auth.roblox.com/v1/usernames/validate?request.username={user}&request.birthday=2000-01-01")
+                r = requests.get(f"https://auth.roblox.com/v1/usernames/validate?request.username={user}&request.birthday=2000-01-01", timeout=5)
                 return r.json().get("code") == 0
+            elif platform == "5": # Discord (Endpoint check)
+                r = requests.get(f"https://discord.com/api/v9/users/@me/outbound-promotions/codes", timeout=5) # Example check
+                # ملاحظة: ديسكورد يتطلب توكن للفحص الدقيق، هنا يتم الفحص عبر الروابط العامة
+                r = requests.get(f"https://discordapp.com/api/v6/invite/{user}", timeout=5)
+                return r.status_code == 404
+            elif platform == "6": # YouTube
+                r = requests.get(f"https://www.youtube.com/@{user}", timeout=5)
+                return r.status_code == 404
         except:
             return False
         return False
@@ -52,35 +64,44 @@ class Checker:
     def start(self, platform, length):
         while True:
             user = self.generate_user(length)
-            # تحديث السطر الحالي في الكونسول (بدون النزول لسطر جديد)
-            sys.stdout.write(f"\r{W}Check | {Y}{user} {W}| Total: {C}{self.total_checked}")
+            self.total_checked += 1
+            
+            # إظهار اليوزر المولد حالياً في سطر متجدد
+            sys.stdout.write(f"\r{W}Check | {C}{user} {W}| Total: {Y}{self.total_checked}")
             sys.stdout.flush()
             
             if self.check_platform(platform, user):
-                print(f"\n{G}✅ Found | {W}{user}") # النزول لسطر جديد عند الإيجاد
-                with open("found.txt", "a") as f:
+                print(f"\n{G}✅ Found | {W}{user}{W}") 
+                with open("hits.txt", "a") as f:
                     f.write(f"{user}\n")
             
-            self.total_checked += 1
+            if self.delay > 0:
+                time.sleep(self.delay)
 
 def main():
     clear()
     logo()
-    choice = input(f"{Y}Choose Platform: {W}")
-    length = int(input(f"{Y}User Length (3, 4, 5): {W}"))
+    choice = input(f"{Y}Select Platform (1-6): {W}")
+    length = int(input(f"{Y}User Length: {W}"))
     
-    # السرعة: 0.0 تعني أعلى سرعة ممكنة باستخدام Threads مكثفة
-    speed = input(f"{Y}Speed (Type 0.0 for Max): {W}")
-    threads_num = 25 if speed == "0.0" else 5
+    # تحديد السرعة
+    try:
+        speed_input = input(f"{Y}Speed (0.0 for No Delay / 0.1): {W}")
+        delay = float(speed_input)
+    except:
+        delay = 0.0
     
-    print(f"\n{C}[!] Searching... (Results saved to found.txt){W}\n")
+    print(f"\n{R}[!] Scanning Started...{W}\n")
     
-    app = Checker()
-    threads = []
-    for _ in range(threads_num):
-        t = threading.Thread(target=app.start, args=(choice, length))
-        t.start()
-        threads.append(t)
+    app = Checker(delay)
+    
+    # استخدام 20 خيط (Thread) لضمان السرعة العالية جداً
+    for _ in range(20):
+        threading.Thread(target=app.start, args=(choice, length), daemon=True).start()
+
+    # لإبقاء السكربت يعمل
+    while True:
+        time.sleep(1)
 
 if __name__ == "__main__":
     main()
