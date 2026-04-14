@@ -13,7 +13,7 @@ C = '\033[1;36m' # سماوي
 Y = '\033[1;33m' # أصفر
 R = '\033[1;31m' # أحمر
 
-# قفل لمنع تداخل الطباعة بين الخيوط
+# قفل لمنع تداخل الطباعة
 print_lock = threading.Lock()
 
 def clear():
@@ -22,17 +22,19 @@ def clear():
 def logo():
     print(f"""
 {C}══════════════════════════════════════
-{Y}     ULTRA THREADED CHECKER V8
+{Y}     NO-COOLDOWN TURBO CHECKER V9
 {C}══════════════════════════════════════
 {W}  1 - TikTok     {W}  2 - Instagram
 {W}  3 - Telegram   {W}  4 - Roblox
 {W}  5 - Discord    {W}  6 - YouTube
 {C}══════════════════════════════════════{W}""")
 
-class MultiThreadedChecker:
+class TurboChecker:
     def __init__(self, delay):
         self.total = 0
         self.delay = delay
+        # استخدام Session لسرعة خرافية في الاتصال
+        self.session = requests.Session()
         self.headers = {
             "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
             "Content-Type": "application/json"
@@ -50,24 +52,25 @@ class MultiThreadedChecker:
 
     def check_platform(self, platform, user):
         try:
+            # الفحص الآن عبر الـ Session المفتوح لسرعة أعلى
             if platform == "1": # TikTok
-                r = requests.get(f"https://www.tiktok.com/api/uniqueid/check/?unique_id={user}", timeout=3)
+                r = self.session.get(f"https://www.tiktok.com/api/uniqueid/check/?unique_id={user}", timeout=2)
                 return r.json().get("status_code") == 0
             elif platform == "2": # Instagram
-                r = requests.get(f"https://www.instagram.com/{user}/", timeout=3)
+                r = self.session.get(f"https://www.instagram.com/{user}/", timeout=2)
                 return r.status_code == 404
             elif platform == "3": # Telegram
-                r = requests.get(f"https://t.me/{user}", timeout=3)
+                r = self.session.get(f"https://t.me/{user}", timeout=2)
                 return "tgme_icon_user" not in r.text and "tgme_page_extra" in r.text
             elif platform == "4": # Roblox
-                r = requests.get(f"https://auth.roblox.com/v1/usernames/validate?request.username={user}&request.birthday=2000-01-01", timeout=3)
+                r = self.session.get(f"https://auth.roblox.com/v1/usernames/validate?request.username={user}&request.birthday=2000-01-01", timeout=2)
                 return r.json().get("code") == 0
-            elif platform == "5": # Discord (Real Pomelo API)
+            elif platform == "5": # Discord
                 payload = {"username": user}
-                r = requests.post("https://discord.com/api/v9/users/@me/pomelo-attempt", json=payload, headers=self.headers, timeout=3)
+                r = self.session.post("https://discord.com/api/v9/users/@me/pomelo-attempt", json=payload, headers=self.headers, timeout=2)
                 return r.json().get("taken") == False
             elif platform == "6": # YouTube
-                r = requests.get(f"https://www.youtube.com/@{user}", timeout=3)
+                r = self.session.get(f"https://www.youtube.com/@{user}", timeout=2)
                 return r.status_code == 404
         except:
             return False
@@ -76,17 +79,17 @@ class MultiThreadedChecker:
         while True:
             user = self.generate_smart_user(length)
             
+            # تحديث العداد واليوزر فوراً
             with print_lock:
                 self.total += 1
-                # تحديث السطر الثابت
                 sys.stdout.write(f"\r\033[K{W}Check | {C}{user} {W}| Total: {Y}{self.total}")
                 sys.stdout.flush()
             
             if self.check_platform(platform, user):
                 with print_lock:
-                    # طباعة النتيجة تحت العداد مباشرة
                     print(f"\n{G}✅ Found | {W}{user}")
             
+            # إذا السرعة 0، لا يوجد أي انتظار ميكرو ثانية حتى
             if self.delay > 0:
                 time.sleep(self.delay)
 
@@ -102,19 +105,18 @@ def main():
     except:
         delay = 0.0
         
-    print(f"\n{R}[!] Speed Mode Activated...{W}\n")
+    print(f"\n{R}[!] Turbo Mode On. No Cooldown.{W}\n")
     
-    bot = MultiThreadedChecker(delay)
+    bot = TurboChecker(delay)
     
-    # تحديد عدد الـ Threads: لو السرعة 0 نفتح 15 خيط لسرعة جبارة
-    num_threads = 15 if delay == 0 else 5
+    # رفع عدد الخيوط لـ 25 خيط عند اختيار السرعة 0
+    num_threads = 25 if delay == 0 else 5
     
     for _ in range(num_threads):
         t = threading.Thread(target=bot.start_worker, args=(plat, size))
         t.daemon = True
         t.start()
 
-    # الحفاظ على السكربت شغال
     while True:
         time.sleep(1)
 
