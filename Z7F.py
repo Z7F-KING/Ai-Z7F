@@ -13,24 +13,26 @@ C = '\033[1;36m' # سماوي
 Y = '\033[1;33m' # أصفر
 R = '\033[1;31m' # أحمر
 
+# قفل لمنع تداخل الطباعة بين الخيوط
+print_lock = threading.Lock()
+
 def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def logo():
     print(f"""
 {C}══════════════════════════════════════
-{Y}     ELITE STATUS-LINE CHECKER V7
+{Y}     ULTRA THREADED CHECKER V8
 {C}══════════════════════════════════════
 {W}  1 - TikTok     {W}  2 - Instagram
 {W}  3 - Telegram   {W}  4 - Roblox
 {W}  5 - Discord    {W}  6 - YouTube
 {C}══════════════════════════════════════{W}""")
 
-class FinalChecker:
+class MultiThreadedChecker:
     def __init__(self, delay):
         self.total = 0
         self.delay = delay
-        self.current_user = ""
         self.headers = {
             "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
             "Content-Type": "application/json"
@@ -43,10 +45,8 @@ class FinalChecker:
             pos = random.randint(1, length - 2)
             part1 = ''.join(random.choice(main_chars) for _ in range(pos))
             part2 = ''.join(random.choice(main_chars) for _ in range(length - pos - 1))
-            user = part1 + symbol + part2
-        else:
-            user = ''.join(random.choice(main_chars) for _ in range(length))
-        return user
+            return part1 + symbol + part2
+        return ''.join(random.choice(main_chars) for _ in range(length))
 
     def check_platform(self, platform, user):
         try:
@@ -62,8 +62,7 @@ class FinalChecker:
             elif platform == "4": # Roblox
                 r = requests.get(f"https://auth.roblox.com/v1/usernames/validate?request.username={user}&request.birthday=2000-01-01", timeout=3)
                 return r.json().get("code") == 0
-            elif platform == "5": # Discord (Precise API Check)
-                # فحص ديسكورد عبر API محاولة إنشاء اسم مستخدم
+            elif platform == "5": # Discord (Real Pomelo API)
                 payload = {"username": user}
                 r = requests.post("https://discord.com/api/v9/users/@me/pomelo-attempt", json=payload, headers=self.headers, timeout=3)
                 return r.json().get("taken") == False
@@ -72,24 +71,21 @@ class FinalChecker:
                 return r.status_code == 404
         except:
             return False
-        return False
 
-    def start(self, platform, length):
+    def start_worker(self, platform, length):
         while True:
             user = self.generate_smart_user(length)
-            self.total += 1
-            self.current_user = user
             
-            # تحديث السطر الأول فقط باستمرار
-            # الرمز \r يعيد المؤشر لبداية السطر، و \033[K يمسح ما تبقى من السطر القديم
-            sys.stdout.write(f"\r\033[K{W}Check | {C}{user} {W}| Total: {Y}{self.total}")
-            sys.stdout.flush()
+            with print_lock:
+                self.total += 1
+                # تحديث السطر الثابت
+                sys.stdout.write(f"\r\033[K{W}Check | {C}{user} {W}| Total: {Y}{self.total}")
+                sys.stdout.flush()
             
             if self.check_platform(platform, user):
-                # إذا وجد يوزر، يطبعه في سطر جديد "تحت" العداد
-                print(f"\n{G}✅ Found | {W}{user} {G}كامل")
-                with open("hits.txt", "a") as f:
-                    f.write(f"{user}\n")
+                with print_lock:
+                    # طباعة النتيجة تحت العداد مباشرة
+                    print(f"\n{G}✅ Found | {W}{user}")
             
             if self.delay > 0:
                 time.sleep(self.delay)
@@ -106,13 +102,21 @@ def main():
     except:
         delay = 0.0
         
-    print(f"\n{R}[!] Scanning... Results will appear below status line.{W}\n")
+    print(f"\n{R}[!] Speed Mode Activated...{W}\n")
     
-    bot = FinalChecker(delay)
+    bot = MultiThreadedChecker(delay)
     
-    # استخدام Thread واحد للتوليد والطباعة لضمان بقاء السطر ثابتاً تماماً كما طلبت
-    # ولو تبي سرعة أعلى ممكن نرفع الخيوط بس كذا بتضمن الشكل اللي طلبته
-    bot.start(plat, size)
+    # تحديد عدد الـ Threads: لو السرعة 0 نفتح 15 خيط لسرعة جبارة
+    num_threads = 15 if delay == 0 else 5
+    
+    for _ in range(num_threads):
+        t = threading.Thread(target=bot.start_worker, args=(plat, size))
+        t.daemon = True
+        t.start()
+
+    # الحفاظ على السكربت شغال
+    while True:
+        time.sleep(1)
 
 if __name__ == "__main__":
     main()
