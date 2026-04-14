@@ -1,34 +1,58 @@
 import asyncio
+import requests
 from holehe import core
 
-async def search_email_info(email):
-    # إعداد الوحدات النمطية للفحص
-    modules = core.import_submodules("holehe.modules")
-    
-    print(f"\n[*] جاري الفحص عن: {email}")
-    print("-" * 30)
+# ملاحظة: للحصول على معلومات حقيقية (اسم، شركة، روابط)، يفضل استخدام مفتاح API من خدمات مثل Hunter.io أو FullContact
+# سأضع لك مثالاً لكيفية دمج فحص المواقع مع فحص التسريبات
 
-    # حلقة للفحص عبر المواقع المختلفة
+async def get_social_accounts(email):
+    print(f"[*] جاري البحث عن الحسابات المرتبطة بـ: {email}...")
+    modules = core.import_submodules("holehe.modules")
     tasks = []
     for module in modules:
-        try:
-            tasks.append(core.get_functions(module, email, {}))
-        except:
-            continue
-
-    # تنفيذ الفحص
-    results = await asyncio.gather(*tasks)
-
-    # عرض النتائج التي وجدنا فيها حسابات
-    found_any = False
-    for result in results:
-        if result and result[0]['exists']:
-            print(f"[+] موجود في: {result[0]['name']}")
-            found_any = True
+        try: tasks.append(core.get_functions(module, email, {}))
+        except: continue
     
-    if not found_any:
-        print("[-] لم يتم العثور على حسابات مرتبطة بهذا البريد في المواقع الشهيرة.")
+    results = await asyncio.gather(*tasks)
+    found = [res[0]['name'] for res in results if res and res[0]['exists']]
+    return found
+
+def check_breach_info(email):
+    # استخدام خدمة مجانية لمعرفة المواقع التي تسرب منها هذا البريد
+    print(f"[*] جاري فحص تسريبات البيانات (Data Breaches)...")
+    url = f"https://api.proxynova.com/comb?query={email}"
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            return data.get("results", [])
+    except:
+        return []
+    return []
+
+async def main():
+    email = input("أدخل البريد الإلكتروني المستهدف: ")
+    
+    # 1. فحص مواقع التواصل
+    socials = await get_social_accounts(email)
+    
+    # 2. فحص التسريبات (لجلب معلومات عن حسابات قديمة أو مخفية)
+    breaches = check_breach_info(email)
+    
+    print("\n" + "="*40)
+    print(f" Results for: {email}")
+    print("="*40)
+    
+    print(f"\n[+] الحسابات النشطة المكتشفة ({len(socials)}):")
+    for site in socials:
+        print(f"  - {site}")
+        
+    if breaches:
+        print(f"\n[!] تم العثور على البريد في تسريبات البيانات التالية:")
+        for b in breaches[:5]: # عرض أول 5 نتائج فقط
+            print(f"  - {b}")
+    else:
+        print("\n[-] لم يتم العثور على تسريبات عامة لهذا البريد.")
 
 if __name__ == "__main__":
-    target_email = input("أدخل البريد الإلكتروني المراد فحصـه: ")
-    asyncio.run(search_email_info(target_email))
+    asyncio.run(main())
