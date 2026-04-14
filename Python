@@ -1,58 +1,48 @@
-import asyncio
+import webbrowser
 import requests
-from holehe import core
 
-# ملاحظة: للحصول على معلومات حقيقية (اسم، شركة، روابط)، يفضل استخدام مفتاح API من خدمات مثل Hunter.io أو FullContact
-# سأضع لك مثالاً لكيفية دمج فحص المواقع مع فحص التسريبات
+def osint_email_hunt(email):
+    print(f"[*] بدء عملية التقصي الرقمي عن: {email}")
+    print("-" * 40)
 
-async def get_social_accounts(email):
-    print(f"[*] جاري البحث عن الحسابات المرتبطة بـ: {email}...")
-    modules = core.import_submodules("holehe.modules")
-    tasks = []
-    for module in modules:
-        try: tasks.append(core.get_functions(module, email, {}))
-        except: continue
-    
-    results = await asyncio.gather(*tasks)
-    found = [res[0]['name'] for res in results if res and res[0]['exists']]
-    return found
-
-def check_breach_info(email):
-    # استخدام خدمة مجانية لمعرفة المواقع التي تسرب منها هذا البريد
-    print(f"[*] جاري فحص تسريبات البيانات (Data Breaches)...")
-    url = f"https://api.proxynova.com/comb?query={email}"
+    # 1. فحص تسريبات قواعد البيانات (Data Breaches)
+    # نستخدم هنا API يعطي معلومات عن المواقع التي سُرب منها البريد
+    print("[+] فحص سجلات التسريبات...")
     try:
-        response = requests.get(url)
+        # محرك بحث عن التسريبات (مجاني ومفتوح)
+        api_url = f"https://api.proxynova.com/comb?query={email}"
+        response = requests.get(api_url, timeout=10)
         if response.status_code == 200:
-            data = response.json()
-            return data.get("results", [])
+            results = response.json().get("results", [])
+            if results:
+                print(f"[!] تم العثور على البريد في {len(results)} سجل مسرب!")
+                for r in results[:3]: # عرض أول 3 نتائج كمثال
+                    print(f"    - نتيجة محتملة: {r}")
+            else:
+                print("[-] لم يتم العثور على البريد في قواعد البيانات العامة.")
     except:
-        return []
-    return []
+        print("[!] فشل الاتصال بقاعدة بيانات التسريبات.")
 
-async def main():
-    email = input("أدخل البريد الإلكتروني المستهدف: ")
+    # 2. توليد روابط "الاستخبارات" (Google Dorks)
+    # هذه الروابط تفتح لك متصفح سفاري/كروم وتبحث عن البريد في أماكن حساسة
+    print("\n[+] توليد روابط التقصي في جوجل وسفاري...")
     
-    # 1. فحص مواقع التواصل
-    socials = await get_social_accounts(email)
-    
-    # 2. فحص التسريبات (لجلب معلومات عن حسابات قديمة أو مخفية)
-    breaches = check_breach_info(email)
-    
+    dorks = {
+        "البحث عن ملفات (PDF/Doc)": f'https://www.google.com/search?q=filetype:pdf OR filetype:doc "{email}"',
+        "البحث في منصات التواصل": f'https://www.google.com/search?q=site:facebook.com OR site:twitter.com OR site:instagram.com "{email}"',
+        "البحث في الأكواد (GitHub/StackOverflow)": f'https://www.google.com/search?q=site:github.com OR site:stackoverflow.com "{email}"',
+        "البحث عن منشروات عامة": f'https://www.google.com/search?q="{email}"'
+    }
+
+    for label, url in dorks.items():
+        print(f"[*] جاري فتح: {label}")
+        webbrowser.open(url)
+
     print("\n" + "="*40)
-    print(f" Results for: {email}")
+    print("تم فتح روابط البحث المتقدم في متصفحك.")
+    print("افحص النتائج في جوجل بدقة، غالباً ستجد روابط قديمة أو ملفات مخفية.")
     print("="*40)
-    
-    print(f"\n[+] الحسابات النشطة المكتشفة ({len(socials)}):")
-    for site in socials:
-        print(f"  - {site}")
-        
-    if breaches:
-        print(f"\n[!] تم العثور على البريد في تسريبات البيانات التالية:")
-        for b in breaches[:5]: # عرض أول 5 نتائج فقط
-            print(f"  - {b}")
-    else:
-        print("\n[-] لم يتم العثور على تسريبات عامة لهذا البريد.")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    email_to_check = input("أدخل البريد المراد صيده: ")
+    osint_email_hunt(email_to_check)
