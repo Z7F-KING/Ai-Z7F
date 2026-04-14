@@ -2,39 +2,33 @@ import asyncio
 from holehe import core
 
 async def search_email_info(email):
+    # إعداد الوحدات النمطية للفحص
     modules = core.import_submodules("holehe.modules")
-
+    
     print(f"\n[*] جاري الفحص عن: {email}")
-    print("-" * 40)
+    print("-" * 30)
 
-    semaphore = asyncio.Semaphore(10)  # تحديد عدد العمليات المتوازية
-
-    async def run_module(module):
-        async with semaphore:
-            try:
-                return await core.get_functions(module, email, {})
-            except Exception:
-                return None
-
-    tasks = [run_module(module) for module in modules]
-
-    results = await asyncio.gather(*tasks)
-
-    found_any = False
-
-    for result in results:
+    # حلقة للفحص عبر المواقع المختلفة
+    tasks = []
+    for module in modules:
         try:
-            if result and isinstance(result, list):
-                for r in result:
-                    if r.get("exists"):
-                        print(f"[+] موجود في: {r.get('name')}")
-                        found_any = True
-        except Exception:
+            tasks.append(core.get_functions(module, email, {}))
+        except:
             continue
 
+    # تنفيذ الفحص
+    results = await asyncio.gather(*tasks)
+
+    # عرض النتائج التي وجدنا فيها حسابات
+    found_any = False
+    for result in results:
+        if result and result[0]['exists']:
+            print(f"[+] موجود في: {result[0]['name']}")
+            found_any = True
+    
     if not found_any:
-        print("[-] لم يتم العثور على حسابات مرتبطة بهذا البريد.")
+        print("[-] لم يتم العثور على حسابات مرتبطة بهذا البريد في المواقع الشهيرة.")
 
 if __name__ == "__main__":
-    email = input("أدخل البريد الإلكتروني: ").strip()
-    asyncio.run(search_email_info(email))
+    target_email = input("أدخل البريد الإلكتروني المراد فحصـه: ")
+    asyncio.run(search_email_info(target_email))
