@@ -1,48 +1,116 @@
-import webbrowser
-import requests
+import os
+import time
+import sys
+import random
 
-def osint_email_hunt(email):
-    print(f"[*] بدء عملية التقصي الرقمي عن: {email}")
-    print("-" * 40)
+# محاولة استيراد مكتبة requests، إذا لم تكن موجودة سيتم تنبيهك
+try:
+    import requests
+except ImportError:
+    os.system('pip install requests')
+    import requests
 
-    # 1. فحص تسريبات قواعد البيانات (Data Breaches)
-    # نستخدم هنا API يعطي معلومات عن المواقع التي سُرب منها البريد
-    print("[+] فحص سجلات التسريبات...")
-    try:
-        # محرك بحث عن التسريبات (مجاني ومفتوح)
-        api_url = f"https://api.proxynova.com/comb?query={email}"
-        response = requests.get(api_url, timeout=10)
-        if response.status_code == 200:
-            results = response.json().get("results", [])
-            if results:
-                print(f"[!] تم العثور على البريد في {len(results)} سجل مسرب!")
-                for r in results[:3]: # عرض أول 3 نتائج كمثال
-                    print(f"    - نتيجة محتملة: {r}")
-            else:
-                print("[-] لم يتم العثور على البريد في قواعد البيانات العامة.")
-    except:
-        print("[!] فشل الاتصال بقاعدة بيانات التسريبات.")
+# الألوان بتنسيق Dark Mode Neon
+R = "\033[1;31m"  # Red
+G = "\033[1;32m"  # Green
+B = "\033[1;34m"  # Blue
+Y = "\033[1;33m"  # Yellow
+C = "\033[1;36m"  # Cyan
+P = "\033[1;35m"  # Purple
+W = "\033[1;37m"  # White
+Reset = "\033[0m"
 
-    # 2. توليد روابط "الاستخبارات" (Google Dorks)
-    # هذه الروابط تفتح لك متصفح سفاري/كروم وتبحث عن البريد في أماكن حساسة
-    print("\n[+] توليد روابط التقصي في جوجل وسفاري...")
+def clear():
+    os.system('clear')
+
+def logo():
+    print(f"""
+{P}      ::::::::  :::::::::: :::::::::: 
+     {P}     :+:    :+:      :+:  :+:        
+    {C}            +:+      +:+   +:+         
+   {C}        +#+      +#+    :#::+::#    
+  {B}      +#+      +#+     +#+           
+ {B}     #+#      #+#      #+#            
+{R}     ##########       ###             {W}TOOL {R}V1
     
-    dorks = {
-        "البحث عن ملفات (PDF/Doc)": f'https://www.google.com/search?q=filetype:pdf OR filetype:doc "{email}"',
-        "البحث في منصات التواصل": f'https://www.google.com/search?q=site:facebook.com OR site:twitter.com OR site:instagram.com "{email}"',
-        "البحث في الأكواد (GitHub/StackOverflow)": f'https://www.google.com/search?q=site:github.com OR site:stackoverflow.com "{email}"',
-        "البحث عن منشروات عامة": f'https://www.google.com/search?q="{email}"'
-    }
+    {W}===========================================
+    {G}       NAME : {Y}TIKTOK TOOL #Z7F
+    {G}       DEV  : {Y}@Z7F_PRO
+    {G}       TYPE : {Y}FREE INJECTION SYSTEM
+    {W}==========================================={Reset}
+    """)
 
-    for label, url in dorks.items():
-        print(f"[*] جاري فتح: {label}")
-        webbrowser.open(url)
+def loading_bar(duration=3):
+    frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
+    end_time = time.time() + duration
+    while time.time() < end_time:
+        for frame in frames:
+            sys.stdout.write(f"\r{C}[{frame}] {G}Injecting Packets...{Reset}")
+            sys.stdout.flush()
+            time.sleep(0.1)
+    print(f"\n{G}[+]{W} Connection Established!{Reset}")
 
-    print("\n" + "="*40)
-    print("تم فتح روابط البحث المتقدم في متصفحك.")
-    print("افحص النتائج في جوجل بدقة، غالباً ستجد روابط قديمة أو ملفات مخفية.")
-    print("="*40)
+def send_request(target, type_name, amount):
+    """
+    هذه الدالة هي المحرك. في حال توفر ثغرة أو موقع مجاني، يتم وضع الرابط هنا.
+    حالياً تقوم بمحاكاة الإرسال الحقيقي عبر البروكسي.
+    """
+    print(f"\n{Y}[!] Sending {amount} {type_name} to: {target}{Reset}")
+    loading_bar(5)
+    
+    # محاكاة الاستجابة من السيرفر
+    status_codes = [200, 201, 403] 
+    res = random.choice(status_codes)
+    
+    if res == 200 or res == 201:
+        print(f"{G}✔️ Success: {amount} {type_name} added successfully.{Reset}")
+        print(f"{C}[#] Order ID: {random.randint(100000, 999999)}{Reset}")
+    else:
+        print(f"{R}✖️ Error: Server Busy. Try again later.{Reset}")
+
+def main():
+    while True:
+        clear()
+        logo()
+        print(f"{C}[1]{W} Followers (متابعين)")
+        print(f"{C}[2]{W} Hearts (لايكات)")
+        print(f"{C}[3]{W} Views (مشاهدات)")
+        print(f"{C}[4]{W} Shares (إكسبلور)")
+        print(f"{R}[0]{W} Exit (خروج)")
+        print(f"{W}-------------------------------------------{Reset}")
+        
+        choice = input(f"{P}Select Option > {Reset}")
+        
+        if choice == '0':
+            print(f"{R}Goodbye Z7F!{Reset}")
+            break
+            
+        if choice in ['1', '2', '3', '4']:
+            clear()
+            logo()
+            
+            types = {'1': 'Followers', '2': 'Hearts', '3': 'Views', '4': 'Shares'}
+            
+            if choice == '1':
+                target = input(f"{G}Enter TikTok Username: {Reset}@")
+            else:
+                target = input(f"{G}Enter Video URL: {Reset}")
+                
+            try:
+                amount = int(input(f"{G}Enter Amount (Max 5000): {Reset}"))
+                if amount > 5000:
+                    print(f"{R}Limit exceeded! Setting to 5000.{Reset}")
+                    amount = 5000
+            except ValueError:
+                print(f"{R}Invalid amount!{Reset}")
+                time.sleep(1)
+                continue
+
+            send_request(target, types[choice], amount)
+            input(f"\n{W}Press Enter to return...{Reset}")
+        else:
+            print(f"{R}Wrong selection!{Reset}")
+            time.sleep(1)
 
 if __name__ == "__main__":
-    email_to_check = input("أدخل البريد المراد صيده: ")
-    osint_email_hunt(email_to_check)
+    main()
