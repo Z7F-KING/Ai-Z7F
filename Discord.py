@@ -1,112 +1,123 @@
 import asyncio
 import aiohttp
-import itertools
-import string
 import random
-from datetime import datetime
+import string
+import os
+from pathlib import Path
 
-# ===== الإعدادات =====
-CHARSET = string.ascii_lowercase + string.digits # تقدر تغيرها لـ string.ascii_lowercase فقط عشان حروف
+# ===== اعداداتك =====
+FILE_SAVE = "DiscordUserByZ7F.txt" # اسم الملف اللي تبيه
+PROXY_FILE = "proxies.txt"
+CHARSET = string.ascii_lowercase + string.digits # حروف وارقام عشان تلاقي متاح، لو تبي حروف فقط شل string.digits
 LENGTH = 4
-CONCURRENT_REQUESTS = 5 # لا ترفعه فوق 10 عشان لا يتبند الـ IP حقك
-DELAY = 0.3 # تأخير بين كل طلب
-
-# تخزين المتاح
-AVAILABLE_FILE = "available.txt"
+CONCURRENT = 3 # خله قليل عشان ما تتبند
+DELAY = 0.8
 
 URL = "https://discord.com/api/v9/unique-username/username-attempt-unauthed"
-
 HEADERS = {
     "Content-Type": "application/json",
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-    "X-Discord-Locale": "en-US"
 }
 
 checked = 0
-available_count = 0
+available = 0
+seen = set()
 
-async def check_username(session, username, sem):
-    global checked, available_count
-    async with sem:
-        try:
-            await asyncio.sleep(DELAY + random.uniform(0, 0.3))
-            async with session.post(URL, json={"username": username}, headers=HEADERS) as r:
+def load_proxies():
+    if not Path(PROXY_FILE).exists():
+        return []
+    proxies = []
+    with open(PROXY_FILE, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if not line.startswith("http"):
+                line = "http://" + line
+            proxies.append(line)
+    print(f"[+] لقيت {len(proxies)} بروكسي في {PROXY_FILE}")
+    return proxies
 
-                if r.status == 429:
-                    data = await r.json()
-                    retry_after = data.get('retry_after', 5)
-                    print(f"[!] Rate Limit - ننتظر {retry_after}s")
-                    await asyncio.sleep(retry_after)
-                    return await check_username(session, username, sem)
+def save_user(username):
+    # يحفظ بدون تكرار وبالترتيب
+    if not Path(FILE_SAVE).exists():
+        Path(FILE_SAVE).write_text("", encoding="utf-8")
 
+    with open(FILE_SAVE, "r", encoding="utf-8") as f:
+        existing = set(x.strip() for x in f)
+
+    if username not in existing:
+        with open(FILE_SAVE, "a", encoding="utf-8") as f:
+            f.write(username + "\n")
+        # ترتيب الملف بعد كل اضافة
+        with open(FILE_SAVE, "r", encoding="utf-8") as f:
+            lines = sorted(set(x.strip() for x in f if x.strip()))
+        with open(FILE_SAVE, "w", encoding="utf-8") as f:
+            f.write("\n".join(lines) + "\n")
+
+async def check_one(session, username, proxy_list):
+    global checked, available
+    proxy = random.choice(proxy_list) if proxy_list else None
+
+    try:
+        async with session.post(URL, json={"username": username}, headers=HEADERS, proxy=proxy, timeout=10) as r:
+            if r.status == 429:
                 data = await r.json()
+                wait = data.get("retry_after", 3)
+                print(f"[!] Rate limit {wait}s - نغير بروكسي")
+                await asyncio.sleep(wait)
+                return False
 
-                # هذا هو الرد الرسمي من الديسكورد
-                taken = data.get("taken")
+            data = await r.json()
+            taken = data.get("taken", True)
+            checked += 1
 
-                checked += 1
+            if taken is False:
+                available += 1
+                save_user(username)
+                print(f"\n[✓ متاح] {username} | فحصنا: {checked} | متاح: {available} | حفظ في {FILE_SAVE}")
+                return True
+            else:
+                print(f"[x] {username} مستخدم | فحصنا: {checked} | متاح: {available}", end="\r")
+                return False
 
-                if taken is False:
-                    available_count += 1
-                    print(f"[✓ متاح] {username} | فحصنا: {checked}")
-                    with open(AVAILABLE_FILE, "a", encoding="utf-8") as f:
-                        f.write(f"{username}\n")
-                    return True
-                else:
-                    print(f"[x] مستخدم: {username} | فحصنا: {checked}", end="\r")
-                    return False
-
-        except Exception as e:
-            print(f"\n[!] خطأ مع {username}: {e}")
-            return False
+    except Exception as e:
+        # بروكسي ميت او خطأ شبكة - نكمل
+        return False
 
 async def main():
+    proxies = load_proxies()
+    if not proxies:
+        print("[!] ما لقيت proxies.txt - بشتغل بدون بروكسي وبشكل آمن")
+
+    Path(FILE_SAVE).touch(exist_ok=True)
     print(f"""
-    ===== Discord 4-Letter Username Checker =====
-    Charset: {CHARSET}
-    Length: {LENGTH}
-    المجموع التقريبي: {len(CHARSET)**LENGTH:,}
+
+    Discord 4-Letter Checker By Z7F
+    يحفظ في: {FILE_SAVE}
+    يفحط لانهائي - اضغط CTRL+C للايقاف
 
     """)
 
-    sem = asyncio.Semaphore(CONCURRENT_REQUESTS)
-
-    # لو تبي تفحص عشوائي مو بالترتيب (افضل لليوزرات الرباعية)
-    RANDOM_MODE = True
+    sem = asyncio.Semaphore(CONCURRENT)
 
     async with aiohttp.ClientSession() as session:
-        if RANDOM_MODE:
-            # يفحص بشكل عشوائي الى ما لا نهاية - افضل طريقة
+        while True:
+            # يولد يوزر عشوائي رباعي
             while True:
                 username = ''.join(random.choices(CHARSET, k=LENGTH))
+                if username in seen: continue
+                if username[0] in "._" or username[-1] in "._": continue
+                if "__" in username or ".." in username: continue
+                seen.add(username)
+                break
 
-                # قوانين الديسكورد: ما يبدأ او ينتهي بنقطة او اندرسكور
-                if username[0] in "._" or username[-1] in "._":
-                    continue
-                if "__" in username or ".." in username:
-                    continue
-
-                await check_username(session, username, sem)
-        else:
-            # يفحص بالترتيب aaaa, aaab...
-            tasks = []
-            for combo in itertools.product(CHARSET, repeat=LENGTH):
-                username = ''.join(combo)
-                if username[0] in "._" or username[-1] in "._":
-                    continue
-                tasks.append(check_username(session, username, sem))
-
-                if len(tasks) >= 1000: # يشغلهم دفعات
-                    await asyncio.gather(*tasks)
-                    tasks = []
-
-            if tasks:
-                await asyncio.gather(*tasks)
-
-    print(f"\nانتهى! لقينا {available_count} يوزر متاح وحفظناها في {AVAILABLE_FILE}")
+            async with sem:
+                await asyncio.sleep(DELAY + random.uniform(0, 0.5))
+                await check_one(session, username, proxies)
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("\nتم الايقاف يدوياً")
+        print(f"\n\nتم الايقاف. اليوزرات المتاحة محفوظة في {FILE_SAVE}")
