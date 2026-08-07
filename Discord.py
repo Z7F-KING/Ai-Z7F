@@ -31,31 +31,33 @@ async def check_proxy_fast(session, proxy, working_list, semaphore):
     async with semaphore:
         proxy_url = f"http://{proxy}"
         try:
-            # مهلة 1.5 ثانية فقط: البروكسي البطئ يُستبعد فوراً لضمان السرعة
+            # مهلة 1.5 ثانية لضمان أقصى سرعة
             async with session.get("https://httpbin.org/ip", proxy=proxy_url, timeout=aiohttp.ClientTimeout(total=1.5)) as response:
                 if response.status == 200:
                     working_list.append(proxy)
-                    # طباعة الشغال فقط فور اكتشافه
-                    print(f"\033[92m[+] شغال: {proxy}\033[0m")
+                    print(f"\033[92m[+] شغال : {proxy}\033[0m")
                     sys.stdout.flush()
+                    return
         except Exception:
-            # تجاهل الخربان تماماً بدون طباعة أي شيء
             pass
+        
+        # طباعة البروكسي غير المتاح / الخربان
+        print(f"\033[91m[-] خربان : {proxy}\033[0m")
+        sys.stdout.flush()
 
 async def main():
-    # رفع حد الاتصالات لمنع الاختناق
     connector = aiohttp.TCPConnector(limit=None, ssl=False)
     
     async with aiohttp.ClientSession(connector=connector) as session:
-        print("[*] جاري جلب آلاف البروكسيات من المصادر...")
+        print("[*] جاري جلب آلاف البروكسيات...")
         raw_proxies = await fetch_all_proxies(session)
         total_count = len(raw_proxies)
         
         print(f"[*] تم جلب {total_count} بروكسي.")
-        print("[*] جاري الفحص الخارق (إظهار الشغال فقط)...\n")
+        print("[*] جاري الفحص السريع (عرض الشغال والخربان)...\n")
 
         working_proxies = []
-        # فحص 500 بروكسي بالتوازي لإنهاء الآلاف في ثوانٍ معدودة
+        # فحص 500 بروكسي بالتوازي للحفاظ على السرعة العالية
         semaphore = asyncio.Semaphore(500)
 
         tasks = [check_proxy_fast(session, proxy, working_proxies, semaphore) for proxy in raw_proxies]
@@ -63,14 +65,12 @@ async def main():
 
         print(f"\n\033[94m[✓] انتهى الفحص! البروكسيات الشغالة والسريعة: {len(working_proxies)} / {total_count}\033[0m")
         
-        # حفظ المقبولة مباشرة في ملف لاستخدامها في سكربت فحص اليوزرات
         with open("working_proxies.txt", "w") as f:
             for p in working_proxies:
                 f.write(f"{p}\n")
         print("[*] تم حفظ البروكسيات الشغالة فقط في working_proxies.txt")
 
 if __name__ == "__main__":
-    # تعديل النمط لبيئات آيفون / iSH لتفادي مشاكل الـ Event Loop
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
