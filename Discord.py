@@ -1,18 +1,19 @@
 import asyncio
 import aiohttp
-import random
+import itertools
 import string
-import time
-from collections import deque
+import random
+from datetime import datetime
 
 # ===== الإعدادات =====
-CHARSET = string.ascii_lowercase + string.digits
+CHARSET = string.ascii_lowercase + string.digits # تقدر تغيرها لـ string.ascii_lowercase فقط عشان حروف
 LENGTH = 4
-CONCURRENT_WORKERS = 20 # هذا هو السر، 20-25 آمن جدا اذا تحترم الـ 429
-MIN_DELAY = 0.12
-MAX_DELAY = 0.28
+CONCURRENT_REQUESTS = 5 # لا ترفعه فوق 10 عشان لا يتبند الـ IP حقك
+DELAY = 0.3 # تأخير بين كل طلب
 
+# تخزين المتاح
 AVAILABLE_FILE = "available.txt"
+
 URL = "https://discord.com/api/v9/unique-username/username-attempt-unauthed"
 
 HEADERS = {
@@ -23,91 +24,89 @@ HEADERS = {
 
 checked = 0
 available_count = 0
-seen_usernames = set()
-file_buffer = []
 
-async def worker(queue, session, lock):
+async def check_username(session, username, sem):
     global checked, available_count
-    while True:
-        username = await queue.get()
+    async with sem:
         try:
-            await asyncio.sleep(random.uniform(MIN_DELAY, MAX_DELAY))
-
+            await asyncio.sleep(DELAY + random.uniform(0, 0.3))
             async with session.post(URL, json={"username": username}, headers=HEADERS) as r:
+
                 if r.status == 429:
                     data = await r.json()
-                    retry_after = data.get('retry_after', 2.5)
-                    print(f"\n[!] Rate Limit - نهدي شوي {retry_after:.2f}s")
+                    retry_after = data.get('retry_after', 5)
+                    print(f"[!] Rate Limit - ننتظر {retry_after}s")
                     await asyncio.sleep(retry_after)
-                    # رجع اليوزر للطابور مرة ثانية
-                    await queue.put(username)
-                    continue
+                    return await check_username(session, username, sem)
 
                 data = await r.json()
+
+                # هذا هو الرد الرسمي من الديسكورد
                 taken = data.get("taken")
 
-                async with lock:
-                    checked += 1
-                    if taken is False:
-                        available_count += 1
-                        file_buffer.append(username)
-                        print(f"\n[✓ متاح] {username} | فحصنا: {checked} | لقينا: {available_count}")
-                        # كل 5 يوزرات احفظ
-                        if len(file_buffer) >= 5:
-                            with open(AVAILABLE_FILE, "a", encoding="utf-8") as f:
-                                f.write("\n".join(file_buffer) + "\n")
-                            file_buffer.clear()
-                    else:
-                        # عشان لا يزحم الكونسول
-                        if checked % 20 == 0:
-                            print(f"[x] نفحص... اخر واحد: {username} | فحصنا: {checked} | لقينا: {available_count}", end="\r")
+                checked += 1
+
+                if taken is False:
+                    available_count += 1
+                    print(f"[✓ متاح] {username} | فحصنا: {checked}")
+                    with open(AVAILABLE_FILE, "a", encoding="utf-8") as f:
+                        f.write(f"{username}\n")
+                    return True
+                else:
+                    print(f"[x] مستخدم: {username} | فحصنا: {checked}", end="\r")
+                    return False
 
         except Exception as e:
-            # لو صار خطأ رجعه للطابور
-            await queue.put(username)
-        finally:
-            queue.task_done()
-
-async def producer(queue):
-    print(f"نولد يوزرات {LENGTH} عشوائية بدون تكرار...")
-    while True:
-        username = ''.join(random.choices(CHARSET, k=LENGTH))
-        if username[0] in "._" or username[-1] in "._": continue
-        if "__" in username or ".." in username: continue
-        if username in seen_usernames: continue
-
-        seen_usernames.add(username)
-        await queue.put(username)
-        # لو الطابور فل لا نولد زيادة
-        if queue.qsize() > 5000:
-            await asyncio.sleep(0.5)
+            print(f"\n[!] خطأ مع {username}: {e}")
+            return False
 
 async def main():
     print(f"""
-    ===== Discord Checker V2 - TURBO =====
-    Workers: {CONCURRENT_WORKERS}
-    Delay: {MIN_DELAY} - {MAX_DELAY}s
+    ===== Discord 4-Letter Username Checker =====
+    Charset: {CHARSET}
+    Length: {LENGTH}
+    المجموع التقريبي: {len(CHARSET)**LENGTH:,}
+
     """)
 
-    queue = asyncio.Queue(maxsize=10000)
-    lock = asyncio.Lock()
+    sem = asyncio.Semaphore(CONCURRENT_REQUESTS)
 
-    connector = aiohttp.TCPConnector(limit=CONCURRENT_WORKERS, ttl_dns_cache=300)
-    timeout = aiohttp.ClientTimeout(total=10)
+    # لو تبي تفحص عشوائي مو بالترتيب (افضل لليوزرات الرباعية)
+    RANDOM_MODE = True
 
-    async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
-        # شغل العمال
-        workers = [asyncio.create_task(worker(queue, session, lock)) for _ in range(CONCURRENT_WORKERS)]
-        prod = asyncio.create_task(producer(queue))
+    async with aiohttp.ClientSession() as session:
+        if RANDOM_MODE:
+            # يفحص بشكل عشوائي الى ما لا نهاية - افضل طريقة
+            while True:
+                username = ''.join(random.choices(CHARSET, k=LENGTH))
 
-        try:
-            await asyncio.gather(prod, *workers)
-        except KeyboardInterrupt:
-            print("\n\nتم الايقاف... جاري حفظ الباقي...")
-            if file_buffer:
-                with open(AVAILABLE_FILE, "a", encoding="utf-8") as f:
-                    f.write("\n".join(file_buffer) + "\n")
-            print(f"انتهى! فحصنا {checked} ولقينا {available_count} متاح")
+                # قوانين الديسكورد: ما يبدأ او ينتهي بنقطة او اندرسكور
+                if username[0] in "._" or username[-1] in "._":
+                    continue
+                if "__" in username or ".." in username:
+                    continue
+
+                await check_username(session, username, sem)
+        else:
+            # يفحص بالترتيب aaaa, aaab...
+            tasks = []
+            for combo in itertools.product(CHARSET, repeat=LENGTH):
+                username = ''.join(combo)
+                if username[0] in "._" or username[-1] in "._":
+                    continue
+                tasks.append(check_username(session, username, sem))
+
+                if len(tasks) >= 1000: # يشغلهم دفعات
+                    await asyncio.gather(*tasks)
+                    tasks = []
+
+            if tasks:
+                await asyncio.gather(*tasks)
+
+    print(f"\nانتهى! لقينا {available_count} يوزر متاح وحفظناها في {AVAILABLE_FILE}")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\nتم الايقاف يدوياً")
