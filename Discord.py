@@ -1,96 +1,103 @@
-import requests
+import discord
 import random
 import string
-import time
+import asyncio
+import io
+import aiohttp
+from discord.ext import commands
 
-OUTPUT_FILE = "DiscordUserByZ7F.txt"
+intents = discord.Intents.default()
+intents.message_content = True
+bot = commands.Bot(command_prefix="!", intents=intents)
 
-# ترويسات متصفح عادية بدون أي Token
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Content-Type": "application/json",
-    "Accept": "*/*",
-    "Origin": "https://discord.com",
-    "Referer": "https://discord.com/register"
-}
+# كل شي مسموح بدسكورد
+CHARS_FULL = string.ascii_lowercase + string.digits + "_."
 
-CHARS = string.ascii_lowercase + string.digits + "_"
+def gen_4_random():
+    # نولد يوزر عشوائي بس يطبق قوانين دسكورد حرفيا
+    while True:
+        s = ''.join(random.choices(CHARS_FULL, k=4))
 
-def generate_random_username(length=4):
-    return ''.join(random.choice(CHARS) for _ in range(length))
+        # 1- مايبدأ ولا ينتهي بنقطة او شرطة
+        if s[0] in "_." or s[-1] in "_.":
+            continue
+        # 2- ممنوع نقطتين ورا بعض
+        if ".." in s:
+            continue
+        # 3- ممنوع رمز جنب رمز زي _.._ __
+        has_bad_combo = False
+        for i in range(len(s)-1):
+            if s[i] in "_." and s[i+1] in "_.":
+                has_bad_combo = True
+                break
+        if has_bad_combo:
+            continue
+        # 4- لازم فيه حرف واحد على الاقل عشان دسكورد يقبله
+        if not any(c in string.ascii_lowercase for c in s):
+            continue
 
-def check_username_no_token(session, username):
-    # استخدام نقطة فحص اليوزر العامة الخاصة بصفحة التسجيل
-    url = "https://discord.com/api/v9/auth/register"
-    payload = {
-        "fingerprint": None,
-        "username": username,
-        "invite": None,
-        "consent": True,
-        "gift_code_sku_id": None,
-        "captcha_key": None
-    }
-    
+        return s
+
+async def check_discord(session, username):
+    url = "https://discord.com/api/v9/unique-username/username-attempt-unauthed"
     try:
-        response = session.post(url, json=payload, timeout=5)
-        
-        # إذا رجع 400، نفحص تفاصيل الخطأ المرجعة من ديسكورد
-        if response.status_code == 400:
-            data = response.json()
-            errors = data.get("errors", {})
-            
-            # إذا كانت مشكلة اليوزر أنه مأخوذ مسبقاً
-            if "username" in errors:
-                return False, "غير متاح"
-            else:
-                # إذا لم يظهر خطأ خاص باليوزر، فالاسم متاح وقبله النظام
-                return True, "متاح"
-                
-        elif response.status_code == 429:
-            return None, "Rate Limit (حظر مؤقت)"
-        else:
-            # أي رمز استجابة آخر (مثل فتح الكابتشا) يحدد تواجد اليوزر
-            return True, "متاح"
-            
-    except Exception as e:
-        return None, f"خطأ اتصال: {str(e)}"
+        async with session.post(url, json={"username": username}) as r:
+            if r.status == 429:
+                data = await r.json()
+                await asyncio.sleep(float(data.get("retry_after", 2)))
+                return await check_discord(session, username)
+            if r.status == 200:
+                data = await r.json()
+                return not data.get("taken", True) # taken=False = متاح
+            return False
+    except:
+        return False
 
-def main():
-    print("=" * 50)
-    print("  Discord No-Token 4-Char Checker - By Z7F  ")
-    print(f"  [+] الحفظ المباشر في: {OUTPUT_FILE}")
-    print("=" * 50 + "\n")
+@bot.event
+async def on_ready():
+    print(f"جاهز - {bot.user}")
 
-    tested_count = 0
-    available_count = 0
+@bot.event
+async def on_message(message):
+    if message.author.bot: return
+    if not message.content.startswith("يوزرات"): return
 
-    session = requests.Session()
-    session.headers.update(HEADERS)
+    parts = message.content.split()
+    count = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else random.randint(50, 200)
+    if count > 500: count = 500
 
-    try:
-        while True:
-            username = generate_random_username(4)
-            tested_count += 1
-            
-            status, message = check_username_no_token(session, username)
-            
-            if status is True:
-                available_count += 1
-                print(f"[{tested_count}] [✓] متاح: {username}")
-                with open(OUTPUT_FILE, "a", encoding="utf-8") as f_out:
-                    f_out.write(f"{username}\n")
-            elif status is False:
-                print(f"[{tested_count}] [X] غير متاح: {username}")
-            else:
-                print(f"[{tested_count}] [!] تنبيه ({username}): {message}")
-                time.sleep(4)
+    wait_msg = await message.reply(f"⏳ قاعد افحص {count} يوزر دسكورد رباعي عشوائي...")
 
-            # مهلة زمنية بسيطة لحماية الـ IP من حظر الـ Rate Limit
-            time.sleep(1)
+    usernames = set()
+    while len(usernames) < count:
+        usernames.add(gen_4_random())
+    usernames = list(usernames)
 
-    except KeyboardInterrupt:
-        print("\n\n[!] تم إيقاف الفحص.")
-        print(f"[+] إجمالي الفحص: {tested_count} | المتاح: {available_count}")
+    available = []
+    sem = asyncio.Semaphore(3)
 
-if __name__ == "__main__":
-    main()
+    async with aiohttp.ClientSession() as session:
+        async def one(u):
+            async with sem:
+                if await check_discord(session, u):
+                    available.append(u)
+                await asyncio.sleep(0.8)
+
+        await asyncio.gather(*[one(u) for u in usernames])
+
+    if not available:
+        embed = discord.Embed(title="UserByZ7F", description=f"فحصت {count} وكلها ماخوذة 💀\nالرباعي صار مستحيل", color=0xED4245)
+        await wait_msg.edit(content="", embed=embed)
+        return
+
+    if len(available) <= 15:
+        embed = discord.Embed(title=f"لقيت {len(available)} متاح ✅", description="\n".join([f"`{u}`" for u in available]), color=0x57F287)
+        embed.set_footer(text=f"فحصنا {count} | UserByZ7F")
+        await wait_msg.edit(content="", embed=embed)
+    else:
+        file = discord.File(io.BytesIO("\n".join(available).encode()), filename="UserByZ7F.txt")
+        embed = discord.Embed(title=f"لقيت {len(available)} متاح 🔥", description="حطيتهم لك بملف", color=0x57F287)
+        await wait_msg.edit(content="", embed=embed)
+        await message.channel.send(file=file)
+
+bot.run("MTQ1MTE5MDg4NDM0NjM2ODA0MA.GpmB4Q.xdSwPVUnLnZIBcmmEy-z0l6afGnL-TmmYN9_CQ")
