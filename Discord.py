@@ -66,4 +66,4 @@ async def check_usernames(ctx, count: int = None):
         )
 
 # ضع توكن البوت الخاص بك هنا
-bot.run("MTQ1MTE5MDg4NDM0NjM2ODA0MA.GpmB4Q.xdSwPVUnLnZIBcmmEy-z0l6afGnL-TmmYN9_CQ")
+bot.run("MTQ1MTE5MDg4NDM0NjM2ODA0MA.GNuOR0.0Ovoq8hsZ3Dq5Ot-BAgOO2B97bnXD-NsnBv8Zk")
