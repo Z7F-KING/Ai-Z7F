@@ -1,88 +1,159 @@
 import asyncio
 import aiohttp
-import sys
+import random
+import string
+from pathlib import Path
 
-PROXY_SOURCES = [
-    "https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/http.txt",
-    "https://raw.githubusercontent.com/clarketm/proxy-list/master/proxy-list-raw.txt",
-    "https://raw.githubusercontent.com/sunny9577/proxy-scraper/master/proxies.txt",
-    "https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/http.txt",
-    "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt"
+FILE_SAVE = "DiscordUserByZ7F.txt"
+LENGTH = 4
+CHARSET = string.ascii_lowercase + string.digits
+
+# بروكسياتك كلها
+PROXIES = [
+    "183.110.216.159:8090",
+    "47.103.30.64:8080",
+    "87.120.216.231:65000",
+    "8.215.25.3:2081",
+    "216.106.182.177:3128",
+    "130.110.103.245:3128",
+    "195.191.158.128:8080",
+    "219.249.37.107:8382",
+    "78.189.92.15:1953",
+    "112.74.101.87:9999",
+    "66.163.127.204:10006",
+    "204.76.203.9:3128",
+    "122.246.4.6:17981",
+    "219.65.73.81:80",
+    "39.106.165.196:8080",
+    "5.39.218.113:3128",
+    "58.254.153.147:17981",
+    "218.252.100.222:80",
+    "185.105.118.110:8080",
+    "16.163.88.228:80",
+    "8.215.25.3:2080",
+    "219.93.101.60:80",
+    "197.221.249.198:80",
+    "38.76.9.0:999",
+    "41.220.22.7:80",
+    "116.0.53.37:8080",
+    "212.127.95.235:8081",
+    "91.239.211.19:10808",
+    "41.220.16.214:80",
+    "8.215.112.34:7777",
+    "163.181.207.213:9999",
+    "218.252.192.228:80",
+    "97.74.87.226:80",
+    "120.232.115.170:17981",
+    "12.50.107.217:80",
+    "185.235.16.12:80",
+    "89.167.124.218:8888",
+    "213.14.182.148:3310",
+    "37.59.125.131:8888",
+    "219.93.101.62:80",
+    "112.64.135.45:8080",
+    "92.169.21.156:80",
+    "40.160.27.66:1080",
 ]
 
-checked_count = 0
-total_count = 0
+URL = "https://discord.com/api/v9/unique-username/username-attempt-unauthed"
+HEADERS = {
+    "Content-Type": "application/json",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+}
 
-async def fetch_all_proxies(session):
-    proxies = set()
-    for url in PROXY_SOURCES:
-        try:
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=5)) as response:
-                if response.status == 200:
-                    text = await response.text()
-                    for line in text.splitlines():
-                        line = line.strip()
-                        if ":" in line and len(line.split(":")) == 2:
-                            proxies.add(line)
-        except Exception:
-            continue
-    return list(proxies)
+checked = 0
+found = 0
+proxy_index = 0
 
-async def check_proxy(session, proxy, working_list, semaphore):
-    global checked_count, total_count
-    async with semaphore:
-        proxy_url = f"http://{proxy}"
-        is_working = False
-        try:
-            # مهلة 2 ثانية لتناسب سرعة معالجة الهواتف
-            async with session.get("http://httpbin.org/ip", proxy=proxy_url, timeout=aiohttp.ClientTimeout(total=2)) as response:
-                if response.status == 200:
-                    is_working = True
-        except Exception:
-            is_working = False
+def format_proxy(p):
+    if not p: return None
+    if not p.startswith("http"): return f"http://{p}"
+    return p
 
-        checked_count += 1
-        if is_working:
-            working_list.append(proxy)
-            print(f"\033[92m[{checked_count}/{total_count}] [+] شغال : {proxy}\033[0m")
+def save_user(username):
+    Path(FILE_SAVE).touch(exist_ok=True)
+    with open(FILE_SAVE, "r", encoding="utf-8") as f:
+        existing = set(l.strip() for l in f)
+    if username in existing:
+        return
+    with open(FILE_SAVE, "a", encoding="utf-8") as f:
+        f.write(username + "\n")
+    # ترتيب
+    with open(FILE_SAVE, "r", encoding="utf-8") as f:
+        lines = sorted(set(l.strip() for l in f if l.strip()))
+    with open(FILE_SAVE, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+async def check_username(session, username):
+    global checked, found, proxy_index
+
+    # نجرب كل البروكسيات واحد واحد لليوزر نفسه
+    for i in range(len(PROXIES) + 1):
+        if proxy_index < len(PROXIES):
+            proxy_raw = PROXIES[proxy_index]
+            proxy = format_proxy(proxy_raw)
+            proxy_display = proxy_raw
         else:
-            print(f"\033[91m[{checked_count}/{total_count}] [-] خربان : {proxy}\033[0m")
-        
-        sys.stdout.flush()
+            proxy = None
+            proxy_display = "بدون بروكسي"
+
+        try:
+            async with session.post(URL, json={"username": username}, headers=HEADERS, proxy=proxy, timeout=8) as r:
+                if r.status == 429:
+                    data = await r.json()
+                    wait = data.get("retry_after", 2)
+                    print(f"[!] Rate Limit {wait}s على {proxy_display} - نبدل")
+                    proxy_index += 1
+                    await asyncio.sleep(wait)
+                    continue
+
+                data = await r.json()
+                taken = data.get("taken", True)
+                checked += 1
+
+                if taken is False:
+                    found += 1
+                    save_user(username)
+                    print(f"\n[✓ متاح] {username} | بروكسي: {proxy_display} | فحصنا: {checked} | لقينا: {found}")
+                    return True
+                else:
+                    print(f"[x] {username} مستخدم | {proxy_display} | فحصنا: {checked} | متاح: {found}", end="\r")
+                    return False
+
+        except Exception as e:
+            # البروكسي ميت نروح للي بعده فوراً
+            print(f"[!] البروكسي مات {proxy_display} -> نجرب اللي بعده")
+            proxy_index += 1
+            if proxy_index > len(PROXIES):
+                proxy_index = len(PROXIES) # نثبت على بدون بروكسي
+            continue
+
+    # اذا خلصو كلهم
+    print(f"\n[!] خلصو البروكسيات كلها، بنكمل بدون بروكسي من الحين")
+    return False
 
 async def main():
-    global total_count
-    # تحديد حدود الاتصال لتفادي خنق النظام في iSH
-    connector = aiohttp.TCPConnector(limit=100, ssl=False)
-    
-    async with aiohttp.ClientSession(connector=connector) as session:
-        print("[*] جاري سحب القوائم...")
-        raw_proxies = await fetch_all_proxies(session)
-        total_count = len(raw_proxies)
-        
-        if total_count == 0:
-            print("[-] لم يتم العثور على بروكسيات، تحقق من الاتصال بالمطبوعات.")
-            return
+    global proxy_index
+    Path(FILE_SAVE).touch(exist_ok=True)
+    print(f"""
 
-        print(f"[*] تم جلب {total_count} بروكسي.")
-        print("[*] جاري الفحص...\n")
+Z7F Discord Checker - By Z7F
+البروكسيات: {len(PROXIES)}
+الحفظ في: {FILE_SAVE}
+يفحط لانهائي لين تقفل بـ CTRL+C
 
-        working_proxies = []
-        # 50 اتصال متزامن لتفادي تعليق تطبيق iSH
-        semaphore = asyncio.Semaphore(50)
+""")
+    async with aiohttp.ClientSession() as session:
+        while True:
+            username = ''.join(random.choices(CHARSET, k=LENGTH))
+            if username[0] in "._" or username[-1] in "._": continue
+            if "__" in username or ".." in username: continue
 
-        tasks = [check_proxy(session, proxy, working_proxies, semaphore) for proxy in raw_proxies]
-        await asyncio.gather(*tasks)
-
-        print(f"\n\033[94m[✓] اكتمل الفحص! الشغال: {len(working_proxies)} / {total_count}\033[0m")
-        
-        with open("working_proxies.txt", "w") as f:
-            for p in working_proxies:
-                f.write(f"{p}\n")
-        print("[*] تم الحفظ في working_proxies.txt")
+            await check_username(session, username)
+            await asyncio.sleep(0.6 + random.uniform(0, 0.7))
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("\n[-] تم الإيقاف.")
+        print(f"\n\nوقفنا - كل شي محفوظ في {FILE_SAVE}")
