@@ -1,72 +1,74 @@
-import random, asyncio
+import requests
+import time
 
-# اعدادات مضاد الرات ليميت
-BASE_DELAY = 0.8
-MAX_DELAY = 15
-current_delay = BASE_DELAY
-consecutive_429 = 0
+# إعدادات الأداة
+INPUT_FILE = "users.txt"  # ملف يحتوي على قائمة اليوزرات المراد فحصها (كل يوزر في سطر)
+OUTPUT_FILE = "DiscordUserByZ7F.txt"  # الملف الذي سيتم حفظ اليوزرات المتاحة فيه
 
-async def check_username_smart(session, username):
-    global checked, found, proxy_index, current_delay, consecutive_429
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Content-Type": "application/json"
+}
 
-    # نحاول بنفس البروكسي لين ينجح
-    for _ in range(2): # محاولتين بس لنفس اليوزر
-        if proxy_index < len(PROXIES):
-            proxy = format_proxy(PROXIES[proxy_index])
-            proxy_display = PROXIES[proxy_index]
+def check_username(username):
+    """
+    إرسال طلب لمكتبة الديسكورد للتحقق من إمكانية استخدام اسم المستخدم.
+    """
+    url = "https://discord.com/api/v9/users/@me/pomelo-attempt"
+    payload = {"username": username.strip()}
+    
+    try:
+        response = requests.post(url, json=payload, headers=HEADERS, timeout=5)
+        
+        # التأكد من حالة الاستجابة
+        if response.status_code == 200:
+            data = response.json()
+            # إذا كانت القيمة taken تساوي False يعني اليوزر غير مأخوذ (متاح)
+            if not data.get("taken", True):
+                return True, "متاح"
+            else:
+                return False, "غير متاح"
+        elif response.status_code == 429:
+            return None, "Rate Limit (حظر مؤقت للطلبات)"
         else:
-            proxy = None
-            proxy_display = "بدون بروكسي"
+            return False, f"حالة غير متوقعة: {response.status_code}"
+            
+    except Exception as e:
+        return None, f"خطأ في الاتصال: {str(e)}"
 
-        try:
-            # تأخير ذكي + عشوائية عشان ما ننكشف
-            await asyncio.sleep(current_delay + random.uniform(0.2, 0.8))
+def main():
+    print("=" * 45)
+    print("      Discord Username Checker - By Z7F      ")
+    print("=" * 45)
+    
+    try:
+        with open(INPUT_FILE, "r", encoding="utf-8") as f:
+            usernames = [line.strip() for line in f if line.strip()]
+    except FileNotFoundError:
+        print(f"[-] خطأ: لم يتم العثور على الملف '{INPUT_FILE}'. قم بإنشائه وأضف فيه اليوزرات.")
+        return
 
-            async with session.post(URL, json={"username": username}, headers=HEADERS, proxy=proxy, timeout=10) as r:
+    print(f"[+] تم تحميل {len(usernames)} يوزر لبدء الفحص...\n")
 
-                if r.status == 429:
-                    data = await r.json()
-                    retry_after = float(data.get("retry_after", 2.5))
+    for username in usernames:
+        status, message = check_username(username)
+        
+        if status is True:
+            print(f"[✓] متاح: {username}")
+            # حفظ اليوزر فوراً في الملف المطلوب
+            with open(OUTPUT_FILE, "a", encoding="utf-8") as f_out:
+                f_out.write(f"{username}\n")
+        elif status is False:
+            print(f"[X] غير متاح: {username}")
+        else:
+            print(f"[!] تنبيه ({username}): {message}")
+            # انتظار إضافي عند مواجهة حظر مؤقت (Rate Limit)
+            time.sleep(5)
+            
+        # مهلة زمنية قصيرة بين الطلبات تجنباً للحظر
+        time.sleep(1.5)
 
-                    consecutive_429 += 1
-                    # كل ما ننبند نزيد التأخير
-                    current_delay = min(MAX_DELAY, BASE_DELAY * (1.5 ** consecutive_429) + retry_after)
+    print("\n[+] اكتمل الفحص. تم حفظ جميع اليوزرات المتاحة في:", OUTPUT_FILE)
 
-                    print(f"\n[!] 429 على {proxy_display} | نوم {current_delay:.1f}s | تأخيرنا الحين: {current_delay:.1f}s")
-                    await asyncio.sleep(current_delay)
-
-                    # اذا انبندنا 3 مرات ورا بعض نبدل البروكسي
-                    if consecutive_429 >= 3:
-                        proxy_index += 1
-                        consecutive_429 = 0
-                        print(f"[!] بدلنا البروكسي -> {PROXIES[proxy_index] if proxy_index < len(PROXIES) else 'بدون'}")
-                    continue
-
-                # اذا الطلب نجح نرجع نسرّع شوي
-                consecutive_429 = 0
-                current_delay = max(BASE_DELAY, current_delay * 0.95)
-
-                data = await r.json()
-                taken = data.get("taken", True)
-
-                global checked, found
-                checked += 1
-
-                if taken is False:
-                    found += 1
-                    save_user(username)
-                    print(f"\n[✓ متاح] {username} | {proxy_display} | فحصنا: {checked} | تأخير: {current_delay:.2f}s")
-                    return True
-                else:
-                    print(f"[x] {username} | {proxy_display} | فحصنا: {checked} | تأخير: {current_delay:.2f}s", end="\r")
-                    return False
-
-        except Exception:
-            print(f"[!] بروكسي مات {proxy_display} -> اللي بعده")
-            proxy_index += 1
-            consecutive_429 = 0
-            current_delay = BASE_DELAY
-            await asyncio.sleep(1)
-            continue
-
-    return False
+if __name__ == "__main__":
+    main()
