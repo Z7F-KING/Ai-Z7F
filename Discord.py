@@ -1,55 +1,66 @@
 import random
 import string
-import time
-import requests
+import urllib.request
+import urllib.error
 import sys
+import time
 
-def generate_target():
-    # توليد يوزرات رباعية (حروف صغيرة، أرقام، شرطة سفلية)
+def get_random_agent():
+    agents = [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2.1 Safari/605.1.15",
+        "Mozilla/5.0 (X11; Linux x86_64; rv:123.0) Gecko/20100101 Firefox/123.0"
+    ]
+    return random.choice(agents)
+
+def generate_username():
+    # الحروف والأرقام والشرطة السفلية المتاحة لليوزرات
     chars = string.ascii_lowercase + string.digits + "_"
     return "".join(random.choices(chars, k=4))
 
-def verify_and_print_available():
-    print("[*] بدء فحص اليوزرات الرباعية... (الطباعة ستظهر عند العثور على يوزر متاح فقط)\n" + "="*50)
+def check_discord_usernames():
+    print("[*] بدء الفحص الفوري لليوزرات الرباعية... (النتائج ستظهر هنا مباشرة)\n" + "="*50)
     
-    session = requests.Session()
-    session.headers.update({
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept-Language": "en-US,en;q=0.9"
-    })
-
     checked = 0
     while True:
-        username = generate_target()
+        username = generate_username()
         checked += 1
         
+        # فحص عبر رابط البحث العام أو التحقق المباشر
+        url = f"https://discord.com/api/v9/users/{username}"
+        
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": get_random_agent(),
+                "Accept": "application/json"
+            }
+        )
+        
         try:
-            # محاكاة الطلب العام للتحقق من التوفر عبر نقاط الـ API المتاحة
-            # ملاحظة: لتجاوز حماية Cloudflare بالكامل في الفحص الحقيقي المكثف، 
-            # يُفضل استخدام بروكسي (Proxy) أو الاعتماد على أداة مكتبية مثل Apify API للبحث السريع.
-            
-            url = f"https://discord.com/api/v9/users/@me/pomelo-attempt"
-            # بما أن ديسكورد تتطلب هيدر المصادقة لهذه النقطة بالذات لمنع السحب،
-            # السكربت هنا مصمم لتصفية وإظهار النتيجة فور استقبال استجابة حقيقية (200 OK وتأكيد عدم الاستخدام).
-            
-            # إذا أردت الفحص المحلي الخالص بدون توكن، يتم فحص استجابة الـ Endpoints المفتوحة للملفات الشخصية:
-            profile_url = f"https://discord.com/api/v9/users/{username}"
-            res = session.get(profile_url, timeout=4)
-            
-            # إذا كان الكود 404، فهذا يعني أن المعرف أو اليوزر غير مسجل كبروفايل قديم (قد يكون متاحاً أو محجوزاً للنظام)
-            if res.status_code == 404:
-                # التحقق الإضافي للتأكد من أنه متاح للاستخدام الفعلي
-                print(f" [+] متاح محتمل / غير مسجل: {username}")
+            with urllib.request.urlopen(req, timeout=3) as response:
+                # إذا رد بـ 200 معناه اليوزر مستخدم ومحجوز لشخص ما
+                pass
+        except urllib.error.HTTPError as e:
+            # إذا كان الرد 404 (غير موجود) فهذا يعني أن اليوزر غير مستخدم بالصيغة التقليدية وقد يكون متاحاً
+            if e.code == 404:
+                print(f"[+] [متاح / غير مسجل]: {username}")
                 sys.stdout.flush()
-                with open("available_clean.txt", "a") as f:
+                with open("available_found.txt", "a") as f:
                     f.write(username + "\n")
-            
-            # تهدئة سرعة الطلبات لتجنب حظر الـ IP الخاص بك من قبل حماية ديسكورد
-            time.sleep(1.2)
-            
+            elif e.code == 429:
+                print("[-] تم رصد ضغط حماية (Rate Limit)، جاري التهدئة...")
+                time.sleep(5)
         except Exception:
-            time.sleep(2)
-            continue
+            # تجاهل أخطاء الاتصال المؤقتة لكي لا يتوقف السكربت
+            pass
+        
+        # طباعة مؤشر الحركة لتعرف أن السكربت شغال وغير متوقف
+        sys.stdout.write(f"\r[-] جاري الفحص... (الرقم المحسوب: {checked})")
+        sys.stdout.flush()
+        
+        # مهلة قصيرة جداً لتسريع الفحص
+        time.sleep(0.3)
 
 if __name__ == "__main__":
-    verify_and_print_available()
+    check_discord_usernames()
